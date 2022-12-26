@@ -1,4 +1,5 @@
 local repo = 'https://raw.githubusercontent.com/wally-rblx/LinoriaLib/main/'
+local notifications = loadstring(game:HttpGet(("https://raw.githubusercontent.com/AbstractPoo/Main/main/Notifications.lua"),true))()
 
 local Library = loadstring(game:HttpGet(repo .. 'Library.lua'))()
 local ThemeManager = loadstring(game:HttpGet(repo .. 'addons/ThemeManager.lua'))()
@@ -199,18 +200,21 @@ function LoadBase(Table)
         game:GetService("StarterGui"):SetCore("SendNotification",{Text = "Parts: "..tonumber(#Table);Duration = 2;})
         Rantimes = Rantimes + 1
         if Rantimes >= Settings.RantimeReset then
+            notifications:notify{Title = "Project Vertigo",Description = "Script Is Waiting To Not Get Kicked!"}
             Rantimes = 0
             SaveInGame(Settings.FileName)
             task.wait(4.5)
         else
+            notifications:notify{Title = "Project Vertigo",Description = "Creating Parts, "..tostring(i).."/"..tostring(#Table).." | "..(math.floor((i/#Table)*100)).."%"}
             task.wait(speeds[Settings.BuildSpeed])
             if not game.Players.LocalPlayer.Character:FindFirstChild("Building Tools") then
                 game.Players.LocalPlayer.Character.Humanoid:EquipTool(game.Players.LocalPlayer.Character:FindFirstChild("Building Tools"))
             end
-            CreatePart(v) 
+            CreatePart(v)
         end
     end
     SaveInGame(Settings.FileName)
+    notifications:notify{Title = "Project Vertigo",Description = "Plot Has Finished Loading!"}
 end
 
 function GetSavedBuilds()
@@ -261,6 +265,7 @@ PlotSavingTab:AddDropdown('PlayerChosen', {Values = GetPlayers(),Default = 1,Mul
 PlotSavingTab:AddInput('SaveFileName', {Default = 'Plot Name',Numeric = false,Finished = false,Text = 'Plot Name',Placeholder = 'Plot Name',})
 local SaveBuilding = PlotSavingTab:AddButton('Save Building!', function()
     writefile("townPlots/"..Settings.FileName..".plot",game:GetService("HttpService"):JSONEncode(SaveBase(Settings.Target)))
+    notifications:notify{Title = "Project Vertigo",Description = "Saved Plot Under, "..Settings.FileName}
 end)
 
 --Misc Build Tab
