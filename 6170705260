@@ -75,7 +75,7 @@ TeleportsBox:AddButton("Goto Beacho [NPC]", function()
     game.Players.LocalPlayer.Character:PivotTo(game:GetService("Workspace").Quests["Quest_Beacho"]["Glow_ring"]:GetPivot()+Vector3.new(0,3,0))
 end)
 TeleportsBox:AddButton("Goto Gearo [NPC]", function()
-    game.Players.LocalPlayer.Character:PivotTo(game:GetService("Workspace").Quests["Quest_Jarro"]["Glow_Gearo"]:GetPivot()+Vector3.new(0,3,0))
+    game.Players.LocalPlayer.Character:PivotTo(game:GetService("Workspace").Quests["Quest_Gearo"]["Glow_ring"]:GetPivot()+Vector3.new(0,3,0))
 end)
 
 
