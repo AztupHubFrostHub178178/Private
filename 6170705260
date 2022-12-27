@@ -1,0 +1,124 @@
+local repo = 'https://raw.githubusercontent.com/wally-rblx/LinoriaLib/main/'
+local notifications = loadstring(game:HttpGet(("https://raw.githubusercontent.com/AbstractPoo/Main/main/Notifications.lua"),true))()
+
+local Library = loadstring(game:HttpGet(repo .. 'Library.lua'))()
+local ThemeManager = loadstring(game:HttpGet(repo .. 'addons/ThemeManager.lua'))()
+local SaveManager = loadstring(game:HttpGet(repo .. 'addons/SaveManager.lua'))()
+
+local Window = Library:CreateWindow({
+    Title = 'Project Vertigo | Blending Simulator 2',
+    Center = true, 
+    AutoShow = true,
+})
+
+Library.KeybindFrame.Visible = false; -- todo: add a function for this
+
+Library:OnUnload(function()
+    Library.Unloaded = true
+end)
+
+local Settings = {Area="Area1"}
+
+--functions
+function GetBag()
+    return tonumber(string.split(game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.PlayerStats.Backpack.Ammount.Text,"/")[1])
+end
+function GetBagSize()
+    return tonumber(string.split(game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.PlayerStats.Backpack.Ammount.Text,"/")[2])
+end
+function GetAreas()
+    return {"Area1","Area2","Area3","Area4","Area5","Area6","Area7"}
+end
+function GetPlot()
+    for i,v in pairs(game:GetService("Workspace").Plots:GetChildren()) do
+        if v:FindFirstChild("PlotOwner") and v.PlotOwner.Value == game.Players.LocalPlayer.Name then
+            return v
+        end
+    end
+end
+
+local Tabs = {Main = Window:AddTab('Main'), ['UI Settings'] = Window:AddTab('UI Settings'),}
+
+local FarmingBox = Tabs.Main:AddLeftGroupbox('Farming')
+local TeleportsBox = Tabs.Main:AddRightGroupbox('Teleports')
+
+TeleportsBox:AddButton("Goto Plot", function()
+    game.Players.LocalPlayer.Character:PivotTo(GetPlot().Floor.CFrame + Vector3.new(0,50,0))
+end)
+TeleportsBox:AddDivider()
+TeleportsBox:AddButton("Goto Shop", function()
+    game.Players.LocalPlayer.Character:PivotTo(game:GetService("Workspace")["Music_Zones"].Shop1.Leave.CFrame)
+end)
+TeleportsBox:AddButton("Goto Shop 2", function()
+    game.Players.LocalPlayer.Character:PivotTo(game:GetService("Workspace")["Music_Zones"].Shop2.Leave.CFrame)
+end)
+TeleportsBox:AddButton("Goto Shop 3", function()
+    game.Players.LocalPlayer.Character:PivotTo(game:GetService("Workspace")["Music_Zones"].Shop2.Leave.CFrame)
+end)
+TeleportsBox:AddButton("Goto Shop Blend", function()
+    game.Players.LocalPlayer.Character:PivotTo(game:GetService("Workspace")["Music_Zones"].Shop2.Leave.CFrame)
+end)
+TeleportsBox:AddButton("Goto Shop Gearo", function()
+    game.Players.LocalPlayer.Character:PivotTo(game:GetService("Workspace")["Music_Zones"].Shop2.Leave.CFrame)
+end)
+TeleportsBox:AddButton("Goto Shop Magic", function()
+    game.Players.LocalPlayer.Character:PivotTo(game:GetService("Workspace")["Music_Zones"].Shop2.Leave.CFrame)
+end)
+TeleportsBox:AddDivider()
+TeleportsBox:AddButton("Goto Jarro [NPC]", function()
+    game.Players.LocalPlayer.Character:PivotTo(game:GetService("Workspace").Quests["Quest_Jarro"]["Glow_ring"]:GetPivot())
+end)
+TeleportsBox:AddButton("Goto Kasjmirr [NPC]", function()
+    game.Players.LocalPlayer.Character:PivotTo(game:GetService("Workspace").Quests["Quest_Jarro"]["Glow_ring"]:GetPivot())
+end)
+TeleportsBox:AddButton("Goto Beacho [NPC]", function()
+    game.Players.LocalPlayer.Character:PivotTo(game:GetService("Workspace").Quests["Quest_Jarro"]["Glow_ring"]:GetPivot())
+end)
+TeleportsBox:AddButton("Goto Gearo [NPC]", function()
+    game.Players.LocalPlayer.Character:PivotTo(game:GetService("Workspace").Quests["Quest_Jarro"]["Glow_ring"]:GetPivot())
+end)
+
+
+FarmingBox:AddDropdown('AreaChoice', {Values = GetAreas(),Default = 1,Multi = false,Text = 'Area To Farm',})
+FarmingBox:AddToggle('AutoIngredents', {Text = 'Auto Collect Ingredents',Default = false})
+FarmingBox:AddButton('Auto Tokens', function()
+    for i,v in next, game:GetService("Workspace").Tokens:GetChildren() do
+        if v.Transparency ~= 0.5 then
+            game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = v.CFrame
+        end
+        task.wait(.1)
+    end
+end)
+
+--On Toggles
+Toggles.AutoIngredents:OnChanged(function()
+    task.spawn(function()
+        while Toggles.AutoIngredents.Value == true and GetBag() ~= GetBagSize() do task.wait()
+            game:GetService("Workspace").Camera.CameraType = Enum.CameraType.Custom
+            for i,v in pairs(game:GetService("Workspace").Areas[Settings.Area].Items:GetChildren()) do
+                if v:FindFirstChild("Collected") and v.Collected.Value == false then
+                    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = v.Hitbox.CFrame
+                end
+            end
+        end
+    end)
+end)
+
+--Options
+Options.AreaChoice:OnChanged(function()
+    Settings.Area = Options.AreaChoice.Value
+end)
+
+local MenuGroup = Tabs['UI Settings']:AddLeftGroupbox('Menu')
+MenuGroup:AddButton('Unload', function() Library:Unload() end)
+MenuGroup:AddLabel('Menu bind'):AddKeyPicker('MenuKeybind', { Default = 'End', NoUI = true, Text = 'Menu keybind' }) 
+Library.ToggleKeybind = Options.MenuKeybind -- Allows you to have a custom keybind for the menu
+ThemeManager:SetLibrary(Library)
+SaveManager:SetLibrary(Library)
+SaveManager:IgnoreThemeSettings() 
+SaveManager:SetIgnoreIndexes({ 'MenuKeybind' }) 
+ThemeManager:SetFolder('MyScriptHub')
+SaveManager:SetFolder('MyScriptHub/specific-game')
+SaveManager:BuildConfigSection(Tabs['UI Settings']) 
+ThemeManager:ApplyToTab(Tabs['UI Settings'])
+SaveManager:LoadAutoloadConfig()
