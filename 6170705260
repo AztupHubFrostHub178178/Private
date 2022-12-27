@@ -98,6 +98,7 @@ Toggles.AutoIngredents:OnChanged(function()
             for i,v in pairs(game:GetService("Workspace").Areas[Settings.Area].Items:GetChildren()) do
                 if v:FindFirstChild("Collected") and v.Collected.Value == false then
                     game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = v.Hitbox.CFrame
+                    game.Players.LocalPlayer.Character.HumanoidRootPart.Velocity = Vector3.new(0,0,0)
                 end
             end
         end
