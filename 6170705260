@@ -21,7 +21,7 @@ local Settings = {Area="Area1"}
 
 --functions
 function GetBag()
-    return tonumber(string.split(game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.PlayerStats.Backpack.Ammount.Text,"/")[1])
+    return tonumber(string.split(string.split(game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.PlayerStats.Backpack.Ammount.Text,":")[2],"/")[1])
 end
 function GetBagSize()
     return tonumber(string.split(game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.PlayerStats.Backpack.Ammount.Text,"/")[2])
@@ -94,8 +94,9 @@ end)
 
 FarmingBox:AddDropdown('AreaChoice', {Values = GetAreas(),Default = 1,Multi = false,Text = 'Area To Farm',})
 FarmingBox:AddToggle('AutoIngredents', {Text = 'Auto Collect Ingredents',Default = false})
+FarmingBox:AddToggle('AutoEmpty', {Text = 'Auto Empty Backpack',Default = false})
 FarmingBox:AddToggle('AutoToken', {Text = 'Auto Collect Blend Tokens',Default = false})
-FarmingBox:AddButton('Auto Tokens', function()
+FarmingBox:AddButton('Collect Tokens', function()
     for i,v in next, game:GetService("Workspace").Tokens:GetChildren() do
         if v.Transparency ~= 0.5 then
             game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = v.CFrame
@@ -114,7 +115,7 @@ FarmingBox:AddToggle('AutoBadges', {Text = 'Auto Claim Badges',Default = false})
 --On Toggles
 Toggles.AutoIngredents:OnChanged(function()
     task.spawn(function()
-        while Toggles.AutoIngredents.Value == true and GetBag() ~= GetBagSize() do task.wait()
+        while Toggles.AutoIngredents.Value == true do task.wait()
             for i,v in pairs(game:GetService("Workspace").Areas[Settings.Area].Items:GetChildren()) do
                 if v:FindFirstChild("Collected") and v.Collected.Value == false then
                     game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = v.Hitbox.CFrame
@@ -127,15 +128,24 @@ end)
 Toggles.AutoToken:OnChanged(function()
     task.spawn(function()
         while Toggles.AutoToken.Value == true do task.wait()
-            if game:GetService("Workspace"):FindFirstChild("BlendToken") then
+            if game:GetService("Workspace"):FindFirstChild("BlendToken") and game:GetService("Workspace").BlendToken.Size == Vector3.new(0.5, 3, 3) then
                 game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = game:GetService("Workspace").BlendToken.CFrame
+            end
+        end
+    end)
+end)
+Toggles.AutoEmpty:OnChanged(function()
+    task.spawn(function()
+        while Toggles.AutoEmpty.Value == true do task.wait(.5)
+            if GetBag() == GetBagSize() then
+                game:GetService("ReplicatedStorage").EmptyBackpack:FireServer(workspace.EmptyBackpacks.Back_Empty_2.Glow_ring)
             end
         end
     end)
 end)
 Toggles.AutoBadges:OnChanged(function()
     task.spawn(function()
-        while Toggles.AutoBadges.Value == true and GetBag() ~= GetBagSize() do task.wait()
+        while Toggles.AutoBadges.Value == true do task.wait()
             for i,v in pairs(game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.Badges.BadgesList:GetChildren()) do
                 if v:IsA("ImageLabel") and v:FindFirstChild("Claim") and v.Claim:FindFirstChild("TextButton_Roundify_12px") and v.Claim.TextButton_Roundify_12px.ImageColor3 == Color3.fromRGB(172,255,146) then
                     game:GetService("ReplicatedStorage").BadgeRemotes.ClaimBadge:InvokeServer(v)
