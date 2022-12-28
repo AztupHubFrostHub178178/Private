@@ -81,6 +81,7 @@ end)
 
 FarmingBox:AddDropdown('AreaChoice', {Values = GetAreas(),Default = 1,Multi = false,Text = 'Area To Farm',})
 FarmingBox:AddToggle('AutoIngredents', {Text = 'Auto Collect Ingredents',Default = false})
+FarmingBox:AddToggle('AutoToken', {Text = 'Auto Collect Blend Tokens',Default = false})
 FarmingBox:AddButton('Auto Tokens', function()
     for i,v in next, game:GetService("Workspace").Tokens:GetChildren() do
         if v.Transparency ~= 0.5 then
@@ -100,6 +101,15 @@ Toggles.AutoIngredents:OnChanged(function()
                     game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = v.Hitbox.CFrame
                     game.Players.LocalPlayer.Character.HumanoidRootPart.Velocity = Vector3.new(0,0,0)
                 end
+            end
+        end
+    end)
+end)
+Toggles.AutoToken:OnChanged(function()
+    task.spawn(function()
+        while Toggles.AutoToken.Value == true do task.wait()
+            if game:GetService("Workspace"):FindFirstChild("BlendToken") then
+                game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = game:GetService("Workspace").BlendToken.CFrame
             end
         end
     end)
