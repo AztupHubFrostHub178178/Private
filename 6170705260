@@ -90,12 +90,13 @@ FarmingBox:AddButton('Auto Tokens', function()
         task.wait(.1)
     end
 end)
+FarmingBox:AddDivider()
+FarmingBox:AddToggle('AutoBadges', {Text = 'Auto Claim Badges',Default = false})
 
 --On Toggles
 Toggles.AutoIngredents:OnChanged(function()
     task.spawn(function()
         while Toggles.AutoIngredents.Value == true and GetBag() ~= GetBagSize() do task.wait()
-            game:GetService("Workspace").Camera.CameraType = Enum.CameraType.Custom
             for i,v in pairs(game:GetService("Workspace").Areas[Settings.Area].Items:GetChildren()) do
                 if v:FindFirstChild("Collected") and v.Collected.Value == false then
                     game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = v.Hitbox.CFrame
@@ -110,6 +111,17 @@ Toggles.AutoToken:OnChanged(function()
         while Toggles.AutoToken.Value == true do task.wait()
             if game:GetService("Workspace"):FindFirstChild("BlendToken") then
                 game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = game:GetService("Workspace").BlendToken.CFrame
+            end
+        end
+    end)
+end)
+Toggles.AutoBadges:OnChanged(function()
+    task.spawn(function()
+        while Toggles.AutoBadges.Value == true and GetBag() ~= GetBagSize() do task.wait()
+            for i,v in pairs(game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.Badges.BadgesList:GetChildren()) do
+                if v:IsA("ImageLabel") and v:FindFirstChild("Claim") and v.Claim:FindFirstChild("TextButton_Roundify_12px") and v.Claim.TextButton_Roundify_12px.ImageColor3 == Color3.fromRGB(172,255,146) then
+                    game:GetService("ReplicatedStorage").BadgeRemotes.ClaimBadge:InvokeServer(v)
+                end
             end
         end
     end)
