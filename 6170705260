@@ -40,8 +40,12 @@ end
 local Tabs = {Main = Window:AddTab('Main'), ['UI Settings'] = Window:AddTab('UI Settings'),}
 
 local FarmingBox = Tabs.Main:AddLeftGroupbox('Farming')
+local QuestBox = Tabs.Main:AddLeftGroupbox('Quest Swapper')
 local TeleportsBox = Tabs.Main:AddRightGroupbox('Teleports')
 
+QuestBox:AddButton("Gearo Quest", function()
+    game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui["Quest_Menu"]["Gearo_GiveRandomQuest"]:FireServer()
+end)
 TeleportsBox:AddButton("Goto Plot", function()
     game.Players.LocalPlayer.Character:PivotTo(GetPlot().Floor.CFrame + Vector3.new(0,50,0))
 end)
@@ -91,6 +95,7 @@ end)
 FarmingBox:AddDropdown('AreaChoice', {Values = GetAreas(),Default = 1,Multi = false,Text = 'Area To Farm',})
 FarmingBox:AddToggle('AutoIngredents', {Text = 'Auto Collect Ingredents',Default = false})
 FarmingBox:AddToggle('AutoToken', {Text = 'Auto Collect Blend Tokens',Default = false})
+FarmingBox:AddToggle('AutoSkill', {Text = 'Infinite Skill Points',Default = false})
 FarmingBox:AddButton('Auto Tokens', function()
     for i,v in next, game:GetService("Workspace").Tokens:GetChildren() do
         if v.Transparency ~= 0.5 then
@@ -103,6 +108,14 @@ FarmingBox:AddDivider()
 FarmingBox:AddToggle('AutoBadges', {Text = 'Auto Claim Badges',Default = false})
 
 --On Toggles
+Toggles.AutoSkill:OnChanged(function()
+    task.spawn(function()
+        while Toggles.AutoSkill.Value == true and GetBag() ~= GetBagSize() do task.wait()
+            game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.Quest_Menu.QuestHandler:FireServer(workspace.Quests.Wizardo)
+            game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.Quest_Menu.ClaimQuest:FireServer(3, "Wizardo", false)
+        end
+    end)
+end)
 Toggles.AutoIngredents:OnChanged(function()
     task.spawn(function()
         while Toggles.AutoIngredents.Value == true and GetBag() ~= GetBagSize() do task.wait()
