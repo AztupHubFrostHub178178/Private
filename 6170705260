@@ -104,6 +104,11 @@ FarmingBox:AddButton('Auto Tokens', function()
         task.wait(.1)
     end
 end)
+FarmingBox:AddButton('Auto Buy Skill Tree', function()
+    for i,v in pairs(game:GetService("Workspace").SkillTree:GetChildren()) do
+        game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.SkillTree.Buy:FireServer(v)
+    end
+end)
 FarmingBox:AddDivider()
 FarmingBox:AddToggle('AutoBadges', {Text = 'Auto Claim Badges',Default = false})
 
