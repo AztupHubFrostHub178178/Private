@@ -94,7 +94,7 @@ function OpenBlenderMenu(Cap)
     ClickPlus(GetFruit(Cap))
 end
 function GotoBlender()
-    for i,v in pairs(game:GetService("Workspace").Plots.Plot1.PlacedItems.Blenders:GetChildren()) do
+    for i,v in pairs(GetPlot().PlacedItems.Blenders:GetChildren()) do
         if v:FindFirstChild("CanBeAccesed") and v.CanBeAccesed.Value == true and v:FindFirstChild("MaxCap") then
             local Cap = v.MaxCap.Value
             game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = v.BlendMenuOpener.CFrame + Vector3.new(0,5,0)
