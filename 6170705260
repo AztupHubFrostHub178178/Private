@@ -36,6 +36,78 @@ function GetPlot()
         end
     end
 end
+local blending = false
+function ClickBlend()
+    local Mouse = game.Players.LocalPlayer:GetMouse()
+    if isrbxactive() == true and blending == true then
+        local blend = game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.BlenderMenu.Blend
+        mousemoveabs(blend.AbsolutePosition.X, blend.AbsolutePosition.Y)
+        task.wait(.2)
+        mousemoveabs(blend.AbsolutePosition.X+(blend.AbsolutePosition.X), blend.AbsolutePosition.Y+(blend.AbsolutePosition.Y-Mouse.Y)+(blend.AbsolutePosition.Y-Mouse.Y))
+        task.wait(.2)
+        mouse1click()
+        blending = false
+    else
+        warn("Roblox Not Open!")
+        blending = false
+    end
+end
+function ClickPlus(Item,TimesToClick)
+    local Mouse = game.Players.LocalPlayer:GetMouse()
+    if isrbxactive() == true then
+        if game:GetService("MarketplaceService"):UserOwnsGamePassAsync(game.Players.LocalPlayer.UserId, 16633520) then
+            local add = game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.BlenderMenu["Add_all"]
+            task.wait(.5)
+            mousemoveabs(add.AbsolutePosition.X, add.AbsolutePosition.Y)
+            task.wait(.2)
+            mousemoveabs(add.AbsolutePosition.X+(add.AbsolutePosition.Y/8),add.AbsolutePosition.Y+(add.AbsolutePosition.Y-Mouse.Y)+(add.AbsolutePosition.Y/16))
+            task.wait(.1)
+            mouse1click()
+            task.wait(.1)
+            ClickBlend()
+        else
+            local plus = game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.BlenderMenu.CustomMenu.Inventory[Item].Plus
+            task.wait(.5)
+            mousemoveabs(plus.AbsolutePosition.X, plus.AbsolutePosition.Y)
+            task.wait(.2)
+            mousemoveabs(plus.AbsolutePosition.X+(plus.AbsolutePosition.Y/8),plus.AbsolutePosition.Y+(plus.AbsolutePosition.Y-Mouse.Y)+(plus.AbsolutePosition.Y/8))
+            task.wait(.3)
+            for i = 1, TimesToClick do
+                task.wait(.08)
+                print("Clicked")
+                mouse1click()
+            end
+            ClickBlend()
+        end
+    else
+        blending = false
+    end
+end
+function GetFruit(Cap)
+    for i,v in pairs(game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.BlenderMenu.CustomMenu.Inventory:GetChildren()) do
+        if v:IsA("Frame") and v.Visible == true and v:FindFirstChild("YouHave") then
+            if (tonumber(string.split(v.YouHave.TextLabel.Text,":")[2]) - Cap) > 0 then
+                return v.Name,Cap
+            end
+        end
+    end 
+end
+function OpenBlenderMenu(Cap)
+    firesignal(game:GetService("Players").LocalPlayer.PlayerGui.PlotInteraction.Button.MouseButton1Click)
+    task.wait(2.5)
+    ClickPlus(GetFruit(Cap))
+end
+function GotoBlender()
+    for i,v in pairs(game:GetService("Workspace").Plots.Plot1.PlacedItems.Blenders:GetChildren()) do
+        if v:FindFirstChild("CanBeAccesed") and v.CanBeAccesed.Value == true and v:FindFirstChild("MaxCap") and blending == false then
+            blending = true
+            local Cap = v.MaxCap.Value
+            game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = v.BlendMenuOpener.CFrame + Vector3.new(0,5,0)
+            task.wait(.5)
+            OpenBlenderMenu(Cap)
+        end
+    end
+end
 
 local Tabs = {Main = Window:AddTab('Main'), ['UI Settings'] = Window:AddTab('UI Settings'),}
 
@@ -94,6 +166,7 @@ end)
 
 FarmingBox:AddDropdown('AreaChoice', {Values = GetAreas(),Default = 1,Multi = false,Text = 'Area To Farm',})
 FarmingBox:AddToggle('AutoIngredents', {Text = 'Auto Collect Ingredents',Default = false})
+FarmingBox:AddToggle('AutoBlend', {Text = 'Auto Blend Ingredents',Default = false, Tooltip = 'May Be Buggy, Roblox Must Be Open!'})
 FarmingBox:AddToggle('AutoEmpty', {Text = 'Auto Empty Backpack',Default = false})
 FarmingBox:AddToggle('AutoToken', {Text = 'Auto Collect Blend Tokens',Default = false})
 FarmingBox:AddToggle('AutoPresent', {Text = 'Auto Collect Presents',Default = false})
@@ -114,6 +187,20 @@ FarmingBox:AddDivider()
 FarmingBox:AddToggle('AutoBadges', {Text = 'Auto Claim Badges',Default = false})
 
 --On Toggles
+Toggles.AutoBlend:OnChanged(function()
+    task.spawn(function()
+        while Toggles.AutoBlend.Value == true do task.wait(.5)
+            if GetBag() == GetBagSize() then
+                print("Calling Function")
+                if blending == false then
+                    GotoBlender()
+                end
+            else
+                blending = false
+            end
+        end
+    end)
+end)
 Toggles.AutoPresent:OnChanged(function()
     task.spawn(function()
         while Toggles.AutoPresent.Value == true do task.wait()
@@ -130,15 +217,17 @@ end)
 Toggles.AutoIngredents:OnChanged(function()
     task.spawn(function()
         while Toggles.AutoIngredents.Value == true do task.wait()
-            for i,v in pairs(game:GetService("Workspace").Areas[Settings.Area].Items:GetChildren()) do
-                if v:FindFirstChild("Collected") and v.Collected.Value == false then
-                    v.Hitbox.Size = Vector3.new(30,30,30)
+            if blending == false then
+                for i,v in pairs(game:GetService("Workspace").Areas[Settings.Area].Items:GetChildren()) do
+                    if v:FindFirstChild("Collected") and v.Collected.Value == false then
+                        v.Hitbox.Size = Vector3.new(30,30,30)
+                    end
                 end
-            end
-            for i,v in pairs(game:GetService("Workspace").Areas[Settings.Area].Items:GetChildren()) do
-                if v:FindFirstChild("Collected") and v.Collected.Value == false then
-                    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = v.Hitbox.CFrame
-                    game.Players.LocalPlayer.Character.HumanoidRootPart.Velocity = Vector3.new(0,0,0)
+                for i,v in pairs(game:GetService("Workspace").Areas[Settings.Area].Items:GetChildren()) do
+                    if v:FindFirstChild("Collected") and v.Collected.Value == false then
+                        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = v.Hitbox.CFrame
+                        game.Players.LocalPlayer.Character.HumanoidRootPart.Velocity = Vector3.new(0,0,0)
+                    end
                 end
             end
         end
