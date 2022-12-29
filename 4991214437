@@ -6,302 +6,280 @@ local ThemeManager = loadstring(game:HttpGet(repo .. 'addons/ThemeManager.lua'))
 local SaveManager = loadstring(game:HttpGet(repo .. 'addons/SaveManager.lua'))()
 
 local Window = Library:CreateWindow({
-    Title = 'Project Vertigo | Town',
+    Title = 'Project Vertigo | Blending Simulator 2',
     Center = true, 
     AutoShow = true,
 })
 
-makefolder("townPlots")
-
---Settings
-local Settings = {Target="",FileName="",BuildSpeed="Normal",RantimeReset=150,ForceBtools=true,IsBuilding=false}
-local speeds = {Normal=.3,Fast=.27,Slow=1}
-
---Functions
-function SaveBase(Player)
-    local Saved = {}
-    table.clear(Saved)
-    local MyPlot = game:GetService("Workspace")["Private Building Areas"][game.Players.LocalPlayer.Name.."BuildArea"].Build
-    local Plot = game:GetService("Workspace")["Private Building Areas"][Player.."BuildArea"].Build
-    for i3,v3 in pairs(Plot:GetChildren()) do
-        if v3:IsA("Folder") then
-            v3.Parent = Plot
-        end
-    end
-    for i2,v2 in pairs(Plot:GetChildren()) do
-        if v2:IsA("Model") then
-           v2.Parent = Plot
-        end
-    end
-    for i,v in ipairs(Plot:GetChildren()) do
-        if v:IsA("BasePart") then
-            local childs = {}
-            table.clear(childs)
-            local Offset = v.Position - Plot.Parent.Position
-            local x,y,z = v.CFrame:toEulerAnglesXYZ()
-            if v:FindFirstChild("SpotLight") then
-               table.insert(childs,{Type=v.SpotLight.Name,Color={R=v.SpotLight.Color.R,G=v.SpotLight.Color.G,B=v.SpotLight.Color.B},Brightness=tonumber(v.SpotLight.Brightness),Range=tonumber(v.SpotLight.Range),Angle=tonumber(v.SpotLight.Angle),Side=tostring(v.SpotLight.Face),Shadows=v.SpotLight.Shadows})
-            end
-            if v:FindFirstChild("SurfaceLight") then
-                table.insert(childs,{Type=v.SurfaceLight.Name,Color={R=v.SurfaceLight.Color.R,G=v.SurfaceLight.Color.G,B=v.SurfaceLight.Color.B},Brightness=tonumber(v.SurfaceLight.Brightness),Range=tonumber(v.SurfaceLight.Range),Angle=tonumber(v.SurfaceLight.Angle),Side=tostring(v.SurfaceLight.Face),Shadows=v.SurfaceLight.Shadows})
-            end
-            if v:FindFirstChild("PointLight") then
-                table.insert(childs,{Type=v.PointLight.Name,Color={R=v.PointLight.Color.R,G=v.PointLight.Color.G,B=v.PointLight.Color.B},Range=tonumber(v.PointLight.Range),Brightness=tonumber(v.PointLight.Brightness),Shadows=v.PointLight.Shadows})
-            elseif v:FindFirstChild("Mesh") then
-                table.insert(childs,{Type=v.Mesh.Name,MeshType=tostring(v.Mesh.MeshType),MeshId=v.Mesh.MeshId,Scale={X=v.Mesh.Scale.X,Y=v.Mesh.Scale.Y,Z=v.Mesh.Scale.Z},Offset={X=v.Mesh.Offset.X,Y=v.Mesh.Offset.Y,Z=v.Mesh.Offset.Z},TextureId=tostring(v.Mesh.TextureId),Tint={X=v.Mesh.VertexColor.X,Y=v.Mesh.VertexColor.Y,Z=v.Mesh.VertexColor.Z}})
-            elseif v:FindFirstChild("Decal") then
-                table.insert(childs,{Type=v.Decal.Name,Face=tostring(v.Decal.Face),Texture=tostring(v.Decal.Texture),Transparency=v.Decal.Transparency})
-            elseif v:FindFirstChild("Texture") then
-                table.insert(childs,{Type=v.Texture.Name,Face=tostring(v.Texture.Face),Texture=tostring(v.Texture.Texture),Transparency=v.Texture.Transparency,Repeat={X=v.Texture.StudsPerTileU,Y=StudsPerTileV}})
-            end
-            table.insert(Saved,{Type=v.Name,Offset={X=Offset.X,Y=Offset.Y,Z=Offset.Z},Size={X=v.Size.X,Y=v.Size.Y,Z=v.Size.Z},Rotation={X=v.Rotation.X,Y=v.Rotation.Y,Z=v.Rotation.Z},Color={R=v.Color.R,G=v.Color.G,B=v.Color.B},Material=tostring(v.Material),Transparency=v.Transparency,CanCollide=v.CanCollide,Angle={X=x,Y=y,Z=z},Children=childs})
-        end
-    end
-    return Saved
-end
-
-function Light(Table,Part)
-    if Part and Table and Table.Type == "SpotLight" or Part and Table and Table.Type == "SurfaceLight" then
-        if Table.Side == nil then
-           Table.Side = "Enum.NormalId.Front"
-        end
-        game:GetService("Players").LocalPlayer.Character:FindFirstChild("Building Tools").SyncAPI.ServerEndpoint:InvokeServer("CreateLights",{[1]={["Part"]=Part,["LightType"]=tostring(Table.Type)}})
-        task.wait(.02)
-        game:GetService("Players").LocalPlayer.Character:FindFirstChild("Building Tools").SyncAPI.ServerEndpoint:InvokeServer("SyncLighting",{[1]={["Part"]=Part,["LightType"]=tostring(Table.Type),["Range"]=Table.Range}})
-        game:GetService("Players").LocalPlayer.Character:FindFirstChild("Building Tools").SyncAPI.ServerEndpoint:InvokeServer("SyncLighting",{[1]={["Part"]=Part,["LightType"]=tostring(Table.Type),["Brightness"]=Table.Brightness}})
-        task.wait(.02)
-        game:GetService("Players").LocalPlayer.Character:FindFirstChild("Building Tools").SyncAPI.ServerEndpoint:InvokeServer("SyncLighting",{[1]={["Part"]=Part,["LightType"]=tostring(Table.Type),["Angle"]=Table.Angle}})
-        game:GetService("Players").LocalPlayer.Character:FindFirstChild("Building Tools").SyncAPI.ServerEndpoint:InvokeServer("SyncLighting",{[1]={["Part"]=Part,["Face"]=Enum.NormalId[Table.Side:reverse():split(".")[1]:reverse()],["LightType"]=tostring(Table.Type)}})
-        task.wait(.02)
-        game:GetService("Players").LocalPlayer.Character:FindFirstChild("Building Tools").SyncAPI.ServerEndpoint:InvokeServer("SyncLighting",{[1]={["Part"]=Part,["LightType"]=tostring(Table.Type),["Shadows"]=Table.Shadows}})
-        game:GetService("Players").LocalPlayer.Character:FindFirstChild("Building Tools").SyncAPI.ServerEndpoint:InvokeServer("SyncLighting",{[1]={["Part"]=Part,["LightType"]=tostring(Table.Type),["Color"]=Color3.new(Table.Color.R,Table.Color.G,Table.Color.B)}})
-        task.wait(.02)
-    elseif Part and Table and Table.Type == "PointLight" then
-        game:GetService("Players").LocalPlayer.Character:FindFirstChild("Building Tools").SyncAPI.ServerEndpoint:InvokeServer("CreateLights",{[1]={["Part"]=Part,["LightType"]=tostring(Table.Type)}})
-        task.wait(.02)
-        game:GetService("Players").LocalPlayer.Character:FindFirstChild("Building Tools").SyncAPI.ServerEndpoint:InvokeServer("SyncLighting",{[1]={["Part"]=Part,["LightType"]=tostring(Table.Type),["Color"]=Color3.new(Table.Color.R,Table.Color.G,Table.Color.B),["Range"]=Table.Range,["Shadows"]=Table.Shadows}})
-    end
-end
-
-
-function Mesh(Table,Part)
-    if Table.TextureId == "" then
-       Table.TextureId = "rbxassetid://0" 
-    end
-    if Table.MeshType == "Enum.MeshType.FileMesh" then
-        table.foreach(Table,print)
-        game:GetService("Players").LocalPlayer.Character:FindFirstChild("Building Tools").SyncAPI.ServerEndpoint:InvokeServer("CreateMeshes",{[1]={["Part"]=Part}})
-        task.wait(.05)
-        game:GetService("Players").LocalPlayer.Character:FindFirstChild("Building Tools").SyncAPI.ServerEndpoint:InvokeServer("SyncMesh",{[1]={["Part"]=Part,["MeshType"]=Enum.MeshType.FileMesh}})
-        task.wait(.05)
-        game:GetService("Players").LocalPlayer.Character:FindFirstChild("Building Tools").SyncAPI.ServerEndpoint:InvokeServer("SyncMesh",{[1]={["Part"]=Part,["MeshType"]=Enum.MeshType.FileMesh,["MeshId"]=Table.MeshId}})
-        task.wait(.02)
-        game:GetService("Players").LocalPlayer.Character:FindFirstChild("Building Tools").SyncAPI.ServerEndpoint:InvokeServer("SyncMesh",{[1]={["Part"]=Part,["MeshType"]=Enum.MeshType.FileMesh,["Scale"]=Vector3.new(Table.Scale.X,Table.Scale.Y,Table.Scale.Z)}})
-        game:GetService("Players").LocalPlayer.Character:FindFirstChild("Building Tools").SyncAPI.ServerEndpoint:InvokeServer("SyncMesh",{[1]={["Part"]=Part,["Offset"]=Vector3.new(Table.Offset.X,Table.Offset.Y,Table.Offset.Z)}})
-        task.wait(.02)
-        game:GetService("Players").LocalPlayer.Character:FindFirstChild("Building Tools").SyncAPI.ServerEndpoint:InvokeServer("SyncMesh",{[1]={["Part"]=Part,["MeshType"]=Enum.MeshType.FileMesh,["TextureId"]=Table.TextureId}})
-        game:GetService("Players").LocalPlayer.Character:FindFirstChild("Building Tools").SyncAPI.ServerEndpoint:InvokeServer("SyncMesh",{[1]={["Part"]=Part,["MeshType"]=Enum.MeshType.FileMesh,["VertexColor"]=Vector3.new(Table.Tint.X,Table.Tint.Y,Table.Tint.Z)}})
-    else
-        game:GetService("Players").LocalPlayer.Character:FindFirstChild("Building Tools").SyncAPI.ServerEndpoint:InvokeServer("CreateMeshes",{[1]={["Part"]=Part}})
-        task.wait(.02)
-        game:GetService("Players").LocalPlayer.Character:FindFirstChild("Building Tools").SyncAPI.ServerEndpoint:InvokeServer("SyncMesh",{[1]={["Part"]=Part,["MeshType"]=Enum.MeshType[Table.MeshType:reverse():split(".")[1]:reverse()]}})
-        game:GetService("Players").LocalPlayer.Character:FindFirstChild("Building Tools").SyncAPI.ServerEndpoint:InvokeServer("SyncMesh",{[1]={["Part"]=Part,["Scale"]=Vector3.new(Table.Scale.X,Table.Scale.Y,Table.Scale.Z)}})
-        task.wait(.02)
-        game:GetService("Players").LocalPlayer.Character:FindFirstChild("Building Tools").SyncAPI.ServerEndpoint:InvokeServer("SyncMesh",{[1]={["Part"]=Part,["Offset"]=Vector3.new(Table.Offset.X,Table.Offset.Y,Table.Offset.Z)}})
-    end   
-end
-
-function Decal(Part,Table)
-    if Table and Part and Table.Type == "Decal" then
-        game:GetService("Players").LocalPlayer.Character:FindFirstChild("Building Tools").SyncAPI.ServerEndpoint:InvokeServer("CreateTextures",{[1]={["Part"]=Part,["Face"]=Enum.NormalId[Table.Face:reverse():split(".")[1]:reverse()],["TextureType"]=Table.Type}})
-        game:GetService("Players").LocalPlayer.Character:FindFirstChild("Building Tools").SyncAPI.ServerEndpoint:InvokeServer("SyncTexture",{[1]={["Part"]=Part,["Face"]=Enum.NormalId[Table.Face:reverse():split(".")[1]:reverse()],["TextureType"]=Table.Type,["Texture"]=Table.Texture}})
-    else
-        game:GetService("Players").LocalPlayer.Character:FindFirstChild("Building Tools").SyncAPI.ServerEndpoint:InvokeServer("CreateTextures",{[1]={["Part"]=Part,["Face"]=Enum.NormalId[Table.Face:reverse():split(".")[1]:reverse()],["TextureType"]=Table.Type}})
-        game:GetService("Players").LocalPlayer.Character:FindFirstChild("Building Tools").SyncAPI.ServerEndpoint:InvokeServer("SyncTexture",{[1]={["Part"]=Part,["Face"]=Enum.NormalId[Table.Face:reverse():split(".")[1]:reverse()],["TextureType"]=Table.Type,["Texture"]=Table.Texture,["StudsPerTileU"]=Table.Repeat.X,["StudsPerTileV"]=Table.Repeat.Y}})
-    end
-end
-
-function SaveInGame(Name)
-   game:GetService("Players").LocalPlayer.PlayerGui.Chat.Frame.ChatBarParentFrame.Frame.BoxFrame.Frame.ChatBar.Text = "!svp "..Name
-    firesignal(game:GetService("Players").LocalPlayer.PlayerGui.Chat.Frame.ChatBarParentFrame.Frame.BoxFrame.Frame.ChatBar.FocusLost,true) 
-end
-
-function CreatePart(Table)
-    local MyPlot = game:GetService("Workspace")["Private Building Areas"][game.Players.LocalPlayer.Name.."BuildArea"].Build
-    local newCFrame = MyPlot.Parent.CFrame + Vector3.new(Table.Offset.X,Table.Offset.Y,Table.Offset.Z)
-    local newPosition = MyPlot.Parent.Position + Vector3.new(Table.Offset.X,Table.Offset.Y,Table.Offset.Z)
-    if Table.Type == "Part" then
-        local Part = game:GetService("Players").LocalPlayer.Character:FindFirstChild("Building Tools").SyncAPI.ServerEndpoint:InvokeServer("CreatePart","Normal",newCFrame*CFrame.Angles(Table.Angle.X,Table.Angle.Y,Table.Angle.Z),MyPlot)
-        game:GetService("Players").LocalPlayer.Character:FindFirstChild("Building Tools").SyncAPI.ServerEndpoint:InvokeServer("SyncResize",{[1] = {["Part"] = Part,["CFrame"]=newCFrame*CFrame.Angles(Table.Angle.X,Table.Angle.Y,Table.Angle.Z),["Size"]=Vector3.new(Table.Size.X,Table.Size.Y,Table.Size.Z)}})
-        game:GetService("Players").LocalPlayer.Character:FindFirstChild("Building Tools").SyncAPI.ServerEndpoint:InvokeServer("SyncColor",{[1]={["Part"]=Part,["Color"]=Color3.fromRGB(math.round(Table.Color.R*255),math.round(Table.Color.G*255),math.round(Table.Color.B*255)),["UnionColoring"] = true}})
-        game:GetService("Players").LocalPlayer.Character:FindFirstChild("Building Tools").SyncAPI.ServerEndpoint:InvokeServer("SyncMaterial",{[1]={["Part"]=Part,["Material"]=Enum.Material[Table.Material:reverse():split(".")[1]:reverse()]}})
-        game:GetService("Players").LocalPlayer.Character:FindFirstChild("Building Tools").SyncAPI.ServerEndpoint:InvokeServer("SyncMaterial",{[1]={["Part"]=Part,["Transparency"]=Table.Transparency}})
-        task.wait(.1)
-        game:GetService("Players").LocalPlayer.Character:FindFirstChild("Building Tools").SyncAPI.ServerEndpoint:InvokeServer("SyncCollision",{[1]={["Part"]=Part,["CanCollide"]=Table.CanCollide}})
-        game:GetService("Players").LocalPlayer.Character:FindFirstChild("Building Tools").SyncAPI.ServerEndpoint:InvokeServer("SyncRotate",{[1]={["Part"]=Part,["CFrame"]=newCFrame*CFrame.Angles(Table.Angle.X,Table.Angle.Y,Table.Angle.Z)}})
-        if Table.Children[1] and Table.Children[1].Type == "PointLight" or Table.Children[1] and Table.Children[1].Type == "SpotLight" or Table.Children[1] and Table.Children[1].Type == "SurfaceLight" then
-            Light(Table.Children[1],Part)
-        end
-        if Table.Children[1] and Table.Children[1].Type == "Mesh" then
-            Mesh(Table.Children[1],Part)
-        end
-        if Table.Children[1] and Table.Children[1].Type == "Decal" or Table.Children[1] and Table.Children[1].Type == "Texture" then
-            Decal(Part,Table.Children[1])
-        end
-    elseif Table.Type == "Wedge" or Table.Type == "Truss" or Table.Type == "Corner" or Table.Type == "Seat" or Table.Type == "VehicleSeat" then
-        local Part = game:GetService("Players").LocalPlayer.Character:FindFirstChild("Building Tools").SyncAPI.ServerEndpoint:InvokeServer("CreatePart",Table.Type,newCFrame*CFrame.Angles(Table.Angle.X,Table.Angle.Y,Table.Angle.Z),MyPlot)
-        game:GetService("Players").LocalPlayer.Character:FindFirstChild("Building Tools").SyncAPI.ServerEndpoint:InvokeServer("SyncResize",{[1] = {["Part"] = Part,["CFrame"]=newCFrame*CFrame.Angles(Table.Angle.X,Table.Angle.Y,Table.Angle.Z),["Size"]=Vector3.new(Table.Size.X,Table.Size.Y,Table.Size.Z)}})
-        game:GetService("Players").LocalPlayer.Character:FindFirstChild("Building Tools").SyncAPI.ServerEndpoint:InvokeServer("SyncColor",{[1]={["Part"]=Part,["Color"]=Color3.new(Table.Color.R,Table.Color.B,Table.Color.B),["UnionColoring"] = true}})
-        game:GetService("Players").LocalPlayer.Character:FindFirstChild("Building Tools").SyncAPI.ServerEndpoint:InvokeServer("SyncMaterial",{[1]={["Part"]=Part,["Material"]=Enum.Material[Table.Material:reverse():split(".")[1]:reverse()],["Transparency"]=Table.Transparency}})
-        task.wait(.1)
-        game:GetService("Players").LocalPlayer.Character:FindFirstChild("Building Tools").SyncAPI.ServerEndpoint:InvokeServer("SyncCollision",{[1]={["Part"]=Part,["CanCollide"]=Table.CanCollide}})
-        game:GetService("Players").LocalPlayer.Character:FindFirstChild("Building Tools").SyncAPI.ServerEndpoint:InvokeServer("SyncRotate",{[1]={["Part"]=Part,["CFrame"]=newCFrame*CFrame.Angles(Table.Angle.X,Table.Angle.Y,Table.Angle.Z)}})
-        if Table.Children[1] and Table.Children[1].Type == "PointLight" or Table.Children[1] and Table.Children[1].Type == "SpotLight" or Table.Children[1] and Table.Children[1].Type == "SurfaceLight" then
-            Light(Table.Children[1],Part)
-        end
-        if Table.Children[1] and Table.Children[1].Type == "Mesh" then
-            Mesh(Table.Children[1],Part)
-        end
-        if Table.Children[1] and Table.Children[1].Type == "Decal" or Table.Children[1] and Table.Children[1].Type == "Texture" then
-            Decal(Part,Table.Children[1])
-        end
-    end
-end
-
-local Rantimes = 0
-
-function LoadBase(Table)
-    if not game.Players.LocalPlayer.Backpack:FindFirstChild("Building Tools") then
-        game:GetService("Players").LocalPlayer.PlayerGui.Chat.Frame.ChatBarParentFrame.Frame.BoxFrame.Frame.ChatBar.Text = "!bt"
-        firesignal(game:GetService("Players").LocalPlayer.PlayerGui.Chat.Frame.ChatBarParentFrame.Frame.BoxFrame.Frame.ChatBar.FocusLost,true)
-        task.wait(1)
-    end
-    if not game.Players.LocalPlayer.Character:FindFirstChild("Building Tools") then
-        game.Players.LocalPlayer.Character.Humanoid:EquipTool(game.Players.LocalPlayer.Backpack:FindFirstChild("Building Tools"))
-    end
-    Rantimes = 0
-    Settings.RantimeReset = 0
-    if Settings.BuildSpeed == ("Normal" or "Slow") then
-        Settings.RantimeReset = 80
-    else
-        Settings.RantimeReset = 15
-    end
-    local oldtick = tick()
-    local MyPlot = game:GetService("Workspace")["Private Building Areas"][game.Players.LocalPlayer.Name.."BuildArea"].Build
-    Settings.IsBuilding = true
-    if Settings.ForceBtools == true and Settings.IsBuilding == true then
-        task.spawn(function()
-            while Settings.IsBuilding == true and not game.Players.LocalPlayer.Character:FindFirstChild("Building Tools") do task.wait()
-               game.Players.LocalPlayer.Character.Humanoid:EquipTool(game.Players.LocalPlayer.Backpack:FindFirstChild("Building Tools"))
-            end
-        end)
-    end
-    for i,v in ipairs(Table) do
-        game:GetService("StarterGui"):SetCore("SendNotification",{Text = "Parts: "..tonumber(#Table);Duration = 2;})
-        Rantimes = Rantimes + 1
-        if Rantimes >= Settings.RantimeReset then
-            notifications:notify{Title = "Project Vertigo",Description = "Script Is Waiting To Not Get Kicked!"}
-            Rantimes = 0
-            SaveInGame(Settings.FileName)
-            task.wait(4.5)
-        else
-            notifications:notify{Title = "Project Vertigo",Description = "Creating Parts, "..tostring(i).."/"..tostring(#Table).." | "..(math.floor((i/#Table)*100)).."%"}
-            task.wait(speeds[Settings.BuildSpeed])
-            if not game.Players.LocalPlayer.Character:FindFirstChild("Building Tools") then
-                game.Players.LocalPlayer.Character.Humanoid:EquipTool(game.Players.LocalPlayer.Character:FindFirstChild("Building Tools"))
-            end
-            CreatePart(v)
-        end
-    end
-    SaveInGame(Settings.FileName)
-    notifications:notify{Title = "Project Vertigo",Description = "Plot Has Finished Loading!"}
-end
-
-function GetSavedBuilds()
-    local tbl = {}
-    for i,v in pairs(listfiles("townPlots")) do
-        str = string.sub(tostring(v),11)
-        newstr = string.split(tostring(str),".")[1]
-        if not table.find(tbl,newstr) then
-            table.insert(tbl,newstr)
-        end
-    end
-    return tbl
-end
-
-function GetPlayers()
-    local tbl = {}
-    for i,v in pairs(game.Players:GetChildren()) do
-        if not table.find(tbl,v.Name) then
-            table.insert(tbl,v.Name) 
-        end
-    end
-    return tbl
-end
-
-
-local Tabs = {Plot = Window:AddTab('Plot'), ['UI Settings'] = Window:AddTab('UI Settings'),}
-
---TabSides
-local PlotBuilding = Tabs.Plot:AddLeftTabbox()
-local PlotSaving = Tabs.Plot:AddRightTabbox()
-local PlotMisc = Tabs.Plot:AddLeftTabbox()
-
---Tabs
-local PlotBuildingTab = PlotBuilding:AddTab('Auto Build')
-local PlotSavingTab = PlotSaving:AddTab('Save Builds')
-local PlotMiscTab = PlotMisc:AddTab('Miscellaneous')
-
---Auto Build Tab
-PlotBuildingTab:AddDropdown('BuildChosen', {Values = GetSavedBuilds(),Default = 1,Multi = false,Text = 'Saved Builds',})
-PlotBuildingTab:AddDropdown('BuildSpeed', {Values = {"Fast","Normal","Slow"},Default = 1,Multi = false,Text = 'Build Speed',})
-local StartBuilding = PlotBuildingTab:AddButton('Start Building!', function()
-    LoadBase(game:GetService("HttpService"):JSONDecode(readfile("townPlots/"..Settings.FileName..".plot")))
-end)
-StartBuilding:AddTooltip("[WARNING] Some Meshes May Not Load!")
-
---Save Build Tab
-PlotSavingTab:AddDropdown('PlayerChosen', {Values = GetPlayers(),Default = 1,Multi = false,Text = 'Player To Save From',})
-PlotSavingTab:AddInput('SaveFileName', {Default = 'Plot Name',Numeric = false,Finished = false,Text = 'Plot Name',Placeholder = 'Plot Name',})
-local SaveBuilding = PlotSavingTab:AddButton('Save Building!', function()
-    writefile("townPlots/"..Settings.FileName..".plot",game:GetService("HttpService"):JSONEncode(SaveBase(Settings.Target)))
-    notifications:notify{Title = "Project Vertigo",Description = "Saved Plot Under, "..Settings.FileName}
-end)
-
---Misc Build Tab
-PlotMiscTab:AddButton('Give Btools', function()
-    game:GetService("Players").LocalPlayer.PlayerGui.Chat.Frame.ChatBarParentFrame.Frame.BoxFrame.Frame.ChatBar.Text = "!btools"
-    firesignal(game:GetService("Players").LocalPlayer.PlayerGui.Chat.Frame.ChatBarParentFrame.Frame.BoxFrame.Frame.ChatBar.FocusLost,true) 
-end)
-PlotMiscTab:AddButton('Make A Plot', function()
-        game:GetService("Players").LocalPlayer.PlayerGui.Chat.Frame.ChatBarParentFrame.Frame.BoxFrame.Frame.ChatBar.Text = "!cp"
-    firesignal(game:GetService("Players").LocalPlayer.PlayerGui.Chat.Frame.ChatBarParentFrame.Frame.BoxFrame.Frame.ChatBar.FocusLost,true) 
-end)
-PlotMiscTab:AddButton('Remove My Plot', function()
-    game:GetService("Players").LocalPlayer.PlayerGui.Chat.Frame.ChatBarParentFrame.Frame.BoxFrame.Frame.ChatBar.Text = "!rmp"
-    firesignal(game:GetService("Players").LocalPlayer.PlayerGui.Chat.Frame.ChatBarParentFrame.Frame.BoxFrame.Frame.ChatBar.FocusLost,true) 
-end)
-
---On Changes
-Options.BuildChosen:OnChanged(function()
-    Settings.FileName = Options.BuildChosen.Value
-    print(Options.BuildChosen.Value)
-end)
-Options.BuildSpeed:OnChanged(function()
-    Settings.BuildSpeed = Options.BuildSpeed.Value
-end)
-Options.PlayerChosen:OnChanged(function()
-    Settings.Target = Options.PlayerChosen.Value
-end)
-Options.SaveFileName:OnChanged(function()
-    Settings.FileName = Options.SaveFileName.Value
-end)
-
 Library.KeybindFrame.Visible = false; -- todo: add a function for this
 
 Library:OnUnload(function()
-    print('Unloaded!')
     Library.Unloaded = true
+end)
+local Mouse = game.Players.LocalPlayer:GetMouse()
+local Settings = {Area="Area1",Empty="Blend Token",Pause=false,OldMousePos=Vector2.new(Mouse.X,Mouse.Y)}
+
+--functions
+function GetBag()
+    return tonumber(string.split(string.split(game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.PlayerStats.Backpack.Ammount.Text,":")[2],"/")[1])
+end
+function GetBagSize()
+    return tonumber(string.split(game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.PlayerStats.Backpack.Ammount.Text,"/")[2])
+end
+function GetAreas()
+    return {"Area1","Area2","Area3","Area4","Area5","Area6","Area7"}
+end
+function GetPlot()
+    for i,v in pairs(game:GetService("Workspace").Plots:GetChildren()) do
+        if v:FindFirstChild("PlotOwner") and v.PlotOwner.Value == game.Players.LocalPlayer.Name then
+            return v
+        end
+    end
+end
+function ClickBlend()
+    if isrbxactive() == true then
+        local blend = game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.BlenderMenu.Blend
+        local back = game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.PlayerStats.Backpack
+        task.wait(.2)
+        mousemoveabs(blend.AbsolutePosition.X+blend.AbsoluteSize.X/2, blend.AbsolutePosition.Y+blend.AbsoluteSize.Y)
+        mousemoveabs(blend.AbsolutePosition.X+blend.AbsoluteSize.X/2, blend.AbsolutePosition.Y+(blend.AbsoluteSize.Y+1))
+        task.wait(.2) 
+        mouse1click()
+        mousemoveabs(Settings.MouseOldPos.X,Settings.MouseOldPos.Y)
+        Settings.Pause = false
+    else
+        warn("Roblox Not Open!")
+        Settings.Pause = false
+    end
+end
+function ClickPlus(Item,TimesToClick)
+    if isrbxactive() == true then
+        if game:GetService("MarketplaceService"):UserOwnsGamePassAsync(game.Players.LocalPlayer.UserId, 16633520) then
+            local add = game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.BlenderMenu["Add_all"]
+            task.wait(.5)
+            mousemoveabs(add.AbsolutePosition.X+add.AbsoluteSize.X/2, add.AbsolutePosition.Y+add.AbsoluteSize.Y)
+            mousemoveabs(add.AbsolutePosition.X+add.AbsoluteSize.X/2, add.AbsolutePosition.Y+(add.AbsoluteSize.Y+1))
+            task.wait(.2)
+            mouse1click()
+            task.wait(.2)
+            ClickBlend()
+        else
+            local plus = game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.BlenderMenu.CustomMenu.Inventory[Item].Plus
+            task.wait(.5)
+            mousemoveabs(plus.AbsolutePosition.X+plus.AbsoluteSize.X/2, plus.AbsolutePosition.Y+plus.AbsoluteSize.Y)
+            mousemoveabs(plus.AbsolutePosition.X+plus.AbsoluteSize.X/2, plus.AbsolutePosition.Y+(plus.AbsoluteSize.Y+1))
+            task.wait(.3)
+            for i = 1, TimesToClick do
+                task.wait(.08)
+                mouse1click()
+            end
+            ClickBlend()
+        end
+    else
+        Settings.Pause = false
+    end
+end
+function GetFruit(Cap)
+    for i,v in pairs(game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.BlenderMenu.CustomMenu.Inventory:GetChildren()) do
+        if v:IsA("Frame") and v.Visible == true and v:FindFirstChild("YouHave") then
+            if (tonumber(string.split(v.YouHave.TextLabel.Text,":")[2]) - Cap) > 0 then
+                return v.Name,Cap
+            end
+        end
+    end 
+end
+function OpenBlenderMenu(Cap)
+    firesignal(game:GetService("Players").LocalPlayer.PlayerGui.PlotInteraction.Button.MouseButton1Click)
+    task.wait(2.5)
+    ClickPlus(GetFruit(Cap))
+end
+function GotoBlender()
+    for i,v in pairs(game:GetService("Workspace").Plots.Plot1.PlacedItems.Blenders:GetChildren()) do
+        if v:FindFirstChild("CanBeAccesed") and v.CanBeAccesed.Value == true and v:FindFirstChild("MaxCap") then
+            local Cap = v.MaxCap.Value
+            game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = v.BlendMenuOpener.CFrame + Vector3.new(0,5,0)
+            task.wait(.5)
+            OpenBlenderMenu(Cap)
+        else
+            notifications:notify{Title = "Project Vertigo",Description = "No Avaliable Blenders!"}
+        end
+    end
+end
+
+local Tabs = {Main = Window:AddTab('Main'), ['UI Settings'] = Window:AddTab('UI Settings'),}
+
+local FarmingBox = Tabs.Main:AddLeftGroupbox('Farming')
+local QuestBox = Tabs.Main:AddLeftGroupbox('Quest Swapper')
+local TeleportsBox = Tabs.Main:AddRightGroupbox('Teleports')
+
+QuestBox:AddButton("Gearo Quest", function()
+    game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui["Quest_Menu"]["Gearo_GiveRandomQuest"]:FireServer()
+end)
+TeleportsBox:AddButton("Goto Plot", function()
+    game.Players.LocalPlayer.Character:PivotTo(GetPlot().Floor.CFrame + Vector3.new(0,50,0))
+end)
+TeleportsBox:AddDivider()
+TeleportsBox:AddButton("Goto Shop", function()
+    game.Players.LocalPlayer.Character:PivotTo(game:GetService("Workspace")["Music_Zones"].Shop1.Leave.CFrame)
+end)
+TeleportsBox:AddButton("Goto Shop 2", function()
+    game.Players.LocalPlayer.Character:PivotTo(game:GetService("Workspace")["Music_Zones"].Shop2.Leave.CFrame)
+end)
+TeleportsBox:AddButton("Goto Shop 3", function()
+    game.Players.LocalPlayer.Character:PivotTo(game:GetService("Workspace")["Music_Zones"].Shop3.Leave.CFrame)
+end)
+TeleportsBox:AddButton("Goto Shop Blend", function()
+    game.Players.LocalPlayer.Character:PivotTo(game:GetService("Workspace")["Music_Zones"].Shop_Blend.Leave.CFrame)
+end)
+TeleportsBox:AddButton("Goto Shop Gearo", function()
+    game.Players.LocalPlayer.Character:PivotTo(game:GetService("Workspace")["Music_Zones"].Gearo_Shop.Leave.CFrame)
+end)
+TeleportsBox:AddButton("Goto Shop Magic", function()
+    game.Players.LocalPlayer.Character:PivotTo(game:GetService("Workspace")["Music_Zones"].Shop_Magic.Leave.CFrame)
+end)
+TeleportsBox:AddDivider()
+TeleportsBox:AddButton("Goto Jarro [NPC]", function()
+    game.Players.LocalPlayer.Character:PivotTo(game:GetService("Workspace").Quests["Quest_Jarro"]["Glow_ring"]:GetPivot()+Vector3.new(0,3,0))
+end)
+TeleportsBox:AddButton("Goto Kasjmirr [NPC]", function()
+    game.Players.LocalPlayer.Character:PivotTo(game:GetService("Workspace").Quests["Quest_Kasjmirr"]["Glow_ring"]:GetPivot()+Vector3.new(0,3,0))
+end)
+TeleportsBox:AddButton("Goto Beacho [NPC]", function()
+    game.Players.LocalPlayer.Character:PivotTo(game:GetService("Workspace").Quests["Quest_Beacho"]["Glow_ring"]:GetPivot()+Vector3.new(0,3,0))
+end)
+TeleportsBox:AddButton("Goto Gearo [NPC]", function()
+    game.Players.LocalPlayer.Character:PivotTo(game:GetService("Workspace").Quests["Quest_Gearo"]["Glow_ring"]:GetPivot()+Vector3.new(0,3,0))
+end)
+TeleportsBox:AddButton("Goto Wizardo [NPC]", function()
+    game.Players.LocalPlayer.Character:PivotTo(game:GetService("Workspace").Quests["Wizardo"]["Glow_ring"]:GetPivot()+Vector3.new(0,3,0))
+end)
+TeleportsBox:AddButton("Goto Frosto [NPC]", function()
+    game.Players.LocalPlayer.Character:PivotTo(game:GetService("Workspace").Quests["Frosto"]["Glow_ring"]:GetPivot()+Vector3.new(0,3,0))
+end)
+TeleportsBox:AddButton("Goto Gingo [NPC]", function()
+    game.Players.LocalPlayer.Character:PivotTo(game:GetService("Workspace").Quests["Gingo"]["Glow_ring"]:GetPivot()+Vector3.new(0,3,0))
+end)
+
+
+FarmingBox:AddDropdown('AreaChoice', {Values = GetAreas(),Default = 1,Multi = false,Text = 'Area To Farm',})
+FarmingBox:AddToggle('AutoIngredents', {Text = 'Auto Collect Ingredents',Default = false})
+FarmingBox:AddToggle('AutoBlend', {Text = 'Auto Blend Ingredents',Default = false, Tooltip = 'May Be Buggy, Use FullScreen [Roblox Must Be Open!]'})
+FarmingBox:AddDropdown('EmptyChoice', {Values = {"Blend Token","Blender [Free]"},Default = 1,Multi = false,Text = 'Auto Empty Backpack Method',})
+FarmingBox:AddToggle('AutoEmpty', {Text = 'Auto Empty Backpack',Default = false})
+FarmingBox:AddToggle('AutoToken', {Text = 'Auto Collect Blend Tokens',Default = false})
+FarmingBox:AddToggle('AutoPresent', {Text = 'Auto Collect Presents',Default = false})
+FarmingBox:AddButton('Collect Tokens', function()
+    for i,v in next, game:GetService("Workspace").Tokens:GetChildren() do
+        if v.Transparency ~= 0.5 then
+            game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = v.CFrame
+        end
+        task.wait(.1)
+    end
+end)
+FarmingBox:AddButton('Auto Buy Skill Tree', function()
+    for i,v in pairs(game:GetService("Workspace").SkillTree:GetChildren()) do
+        game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.SkillTree.Buy:FireServer(v)
+    end
+end)
+FarmingBox:AddDivider()
+FarmingBox:AddToggle('AutoBadges', {Text = 'Auto Claim Badges',Default = false})
+
+--On Toggles
+Toggles.AutoBlend:OnChanged(function()
+    task.spawn(function()
+        while Toggles.AutoBlend.Value == true do task.wait()
+            if GetBag() == GetBagSize() then
+                Settings.Pause = true
+                Settings.MouseOldPos = Vector2.new(Mouse.X,Mouse.Y)
+                GotoBlender()
+            end
+        end
+    end)
+end)
+Toggles.AutoPresent:OnChanged(function()
+    task.spawn(function()
+        while Toggles.AutoPresent.Value == true do task.wait()
+            if Settings.Pause == false then
+                for i,v in pairs(game:GetService("Workspace").Areas:GetDescendants()) do
+                    if v.Name == "Present_Drop" then
+                        if v:FindFirstChild("Doos_Boven") and not v.Doos_Boven:FindFirstChild("WeldConstraint") then
+                            game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = v:GetPivot()
+                        end
+                    end
+                end
+            end
+        end
+    end)
+end)
+Toggles.AutoIngredents:OnChanged(function()
+    task.spawn(function()
+        while Toggles.AutoIngredents.Value == true do task.wait()
+            if Settings.Pause == false then
+                for i,v in pairs(game:GetService("Workspace").Areas[Settings.Area].Items:GetChildren()) do
+                    if v:FindFirstChild("Collected") and v.Collected.Value == false then
+                        v.Hitbox.Size = Vector3.new(30,30,30)
+                    end
+                end
+                for i,v in pairs(game:GetService("Workspace").Areas[Settings.Area].Items:GetChildren()) do
+                    if v:FindFirstChild("Collected") and v.Collected.Value == false then
+                        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = v.Hitbox.CFrame
+                        game.Players.LocalPlayer.Character.HumanoidRootPart.Velocity = Vector3.new(0,0,0)
+                    end
+                end
+            end
+        end
+    end)
+end)
+Toggles.AutoToken:OnChanged(function()
+    task.spawn(function()
+        while Toggles.AutoToken.Value == true do task.wait()
+            if Settings.Pause == false then
+                if game:GetService("Workspace"):FindFirstChild("BlendToken") and game:GetService("Workspace").BlendToken.Size == Vector3.new(0.5, 3, 3) then
+                    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = game:GetService("Workspace").BlendToken.CFrame
+                end
+            end
+        end
+    end)
+end)
+Toggles.AutoEmpty:OnChanged(function()
+    task.spawn(function()
+        while Toggles.AutoEmpty.Value == true do task.wait(.5)
+            if GetBag() == GetBagSize() and Settings.Empty == "Blend Token" then
+                game:GetService("ReplicatedStorage").EmptyBackpack:FireServer(workspace.EmptyBackpacks.Back_Empty_2.Glow_ring)
+            elseif GetBag() == GetBagSize() and Settings.Empty == "Blender [Free]" then
+                for i,v in pairs(game:GetService("Workspace").Plots.Plot1.PlacedItems.Blenders:GetChildren()) do
+                    if v:FindFirstChild("CanBeAccesed") and v.CanBeAccesed.Value == true then
+                        Settings.Pause = true
+                        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = v.BlendMenuOpener.CFrame + Vector3.new(0,5,0)
+                        task.wait(1)
+                        firesignal(game:GetService("Players").LocalPlayer.PlayerGui.PlotInteraction.Button.MouseButton1Click)
+                        task.wait(.2)
+                        firesignal(game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.BlenderMenu.Exit.MouseButton1Click)
+                        Settings.Pause = false
+                    end
+                end
+            end
+        end
+    end)
+end)
+Toggles.AutoBadges:OnChanged(function()
+    task.spawn(function()
+        while Toggles.AutoBadges.Value == true do task.wait()
+            for i,v in pairs(game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.Badges.BadgesList:GetChildren()) do
+                if v:IsA("ImageLabel") and v:FindFirstChild("Claim") and v.Claim:FindFirstChild("TextButton_Roundify_12px") and v.Claim.TextButton_Roundify_12px.ImageColor3 == Color3.fromRGB(172,255,146) then
+                    game:GetService("ReplicatedStorage").BadgeRemotes.ClaimBadge:InvokeServer(v)
+                end
+            end
+        end
+    end)
+end)
+
+--Options
+Options.AreaChoice:OnChanged(function()
+    Settings.Area = Options.AreaChoice.Value
+end)
+Options.EmptyChoice:OnChanged(function()
+    Settings.Empty = Options.EmptyChoice.Value
 end)
 
 local MenuGroup = Tabs['UI Settings']:AddLeftGroupbox('Menu')
