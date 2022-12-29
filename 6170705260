@@ -48,7 +48,7 @@ function ClickBlend()
         task.wait(.2)
         mouse1click()
         blending = false
-        mousemoveabs(game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.PlayerStats.Backpack.AbsolutePosition.X,game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.PlayerStats.Backpack.AbsolutePosition.Y*2)
+        mousemoveabs(game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.PlayerStats.Backpack.AbsolutePosition.X,game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.PlayerStats.Backpack.AbsolutePosition.Y+200)
     else
         warn("Roblox Not Open!")
         blending = false
