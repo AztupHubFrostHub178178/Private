@@ -48,7 +48,7 @@ function ClickBlend()
         task.wait(.2)
         mouse1click()
         blending = false
-        mousemoveabs(game:GetService("Players").derpyperson888.PlayerGui.ScreenGui.PlayerStats.Backpack.AbsolutePosition.X,game:GetService("Players").derpyperson888.PlayerGui.ScreenGui.PlayerStats.Backpack.AbsolutePosition.Y)
+        mousemoveabs(game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.PlayerStats.Backpack.AbsolutePosition.X,game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.PlayerStats.Backpack.AbsolutePosition.Y*2)
     else
         warn("Roblox Not Open!")
         blending = false
@@ -190,9 +190,8 @@ FarmingBox:AddToggle('AutoBadges', {Text = 'Auto Claim Badges',Default = false})
 --On Toggles
 Toggles.AutoBlend:OnChanged(function()
     task.spawn(function()
-        while Toggles.AutoBlend.Value == true do task.wait(.5)
+        while Toggles.AutoBlend.Value == true do task.wait()
             if GetBag() == GetBagSize() then
-                print("Calling Function, Blending Value = "..tostring(blending))
                 if blending == false then
                     GotoBlender()
                 end
