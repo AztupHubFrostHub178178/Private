@@ -41,12 +41,14 @@ function ClickBlend()
     local Mouse = game.Players.LocalPlayer:GetMouse()
     if isrbxactive() == true and blending == true then
         local blend = game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.BlenderMenu.Blend
-        mousemoveabs(blend.AbsolutePosition.X, blend.AbsolutePosition.Y)
         task.wait(.2)
+        mousemoveabs(blend.AbsolutePosition.X, blend.AbsolutePosition.Y)
+        task.wait(.25)
         mousemoveabs(blend.AbsolutePosition.X+(blend.AbsolutePosition.X), blend.AbsolutePosition.Y+(blend.AbsolutePosition.Y-Mouse.Y)+(blend.AbsolutePosition.Y-Mouse.Y))
         task.wait(.2)
         mouse1click()
         blending = false
+        mousemoveabs(game:GetService("Players").derpyperson888.PlayerGui.ScreenGui.PlayerStats.Backpack.AbsolutePosition.X,game:GetService("Players").derpyperson888.PlayerGui.ScreenGui.PlayerStats.Backpack.AbsolutePosition.Y)
     else
         warn("Roblox Not Open!")
         blending = false
@@ -60,10 +62,10 @@ function ClickPlus(Item,TimesToClick)
             task.wait(.5)
             mousemoveabs(add.AbsolutePosition.X, add.AbsolutePosition.Y)
             task.wait(.2)
-            mousemoveabs(add.AbsolutePosition.X+(add.AbsolutePosition.Y/8),add.AbsolutePosition.Y+(add.AbsolutePosition.Y-Mouse.Y)+(add.AbsolutePosition.Y/16))
-            task.wait(.1)
+            mousemoveabs(add.AbsolutePosition.X+(add.AbsolutePosition.Y/8),add.AbsolutePosition.Y+(add.AbsolutePosition.Y-Mouse.Y)+(add.AbsolutePosition.Y-Mouse.Y))
+            task.wait(.2)
             mouse1click()
-            task.wait(.1)
+            task.wait(.2)
             ClickBlend()
         else
             local plus = game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.BlenderMenu.CustomMenu.Inventory[Item].Plus
@@ -74,7 +76,6 @@ function ClickPlus(Item,TimesToClick)
             task.wait(.3)
             for i = 1, TimesToClick do
                 task.wait(.08)
-                print("Clicked")
                 mouse1click()
             end
             ClickBlend()
@@ -99,7 +100,7 @@ function OpenBlenderMenu(Cap)
 end
 function GotoBlender()
     for i,v in pairs(game:GetService("Workspace").Plots.Plot1.PlacedItems.Blenders:GetChildren()) do
-        if v:FindFirstChild("CanBeAccesed") and v.CanBeAccesed.Value == true and v:FindFirstChild("MaxCap") and blending == false then
+        if v:FindFirstChild("CanBeAccesed") and v.CanBeAccesed.Value == true and v:FindFirstChild("MaxCap") then
             blending = true
             local Cap = v.MaxCap.Value
             game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = v.BlendMenuOpener.CFrame + Vector3.new(0,5,0)
@@ -166,7 +167,7 @@ end)
 
 FarmingBox:AddDropdown('AreaChoice', {Values = GetAreas(),Default = 1,Multi = false,Text = 'Area To Farm',})
 FarmingBox:AddToggle('AutoIngredents', {Text = 'Auto Collect Ingredents',Default = false})
-FarmingBox:AddToggle('AutoBlend', {Text = 'Auto Blend Ingredents',Default = false, Tooltip = 'May Be Buggy, Roblox Must Be Open!'})
+FarmingBox:AddToggle('AutoBlend', {Text = 'Auto Blend Ingredents',Default = false, Tooltip = 'May Be Buggy, Use FullScreen [Roblox Must Be Open!]'})
 FarmingBox:AddToggle('AutoEmpty', {Text = 'Auto Empty Backpack',Default = false})
 FarmingBox:AddToggle('AutoToken', {Text = 'Auto Collect Blend Tokens',Default = false})
 FarmingBox:AddToggle('AutoPresent', {Text = 'Auto Collect Presents',Default = false})
@@ -191,7 +192,7 @@ Toggles.AutoBlend:OnChanged(function()
     task.spawn(function()
         while Toggles.AutoBlend.Value == true do task.wait(.5)
             if GetBag() == GetBagSize() then
-                print("Calling Function")
+                print("Calling Function, Blending Value = "..tostring(blending))
                 if blending == false then
                     GotoBlender()
                 end
