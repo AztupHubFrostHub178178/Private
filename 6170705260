@@ -17,7 +17,7 @@ Library:OnUnload(function()
     Library.Unloaded = true
 end)
 
-local Settings = {Area="Area1"}
+local Settings = {Area="Area1",Empty="Blend Token",Pause=false}
 
 --functions
 function GetBag()
@@ -36,33 +36,27 @@ function GetPlot()
         end
     end
 end
-local blending = false
 function ClickBlend()
-    local Mouse = game.Players.LocalPlayer:GetMouse()
-    if isrbxactive() == true and blending == true then
+    if isrbxactive() == true then
         local blend = game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.BlenderMenu.Blend
+        local back = game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.PlayerStats.Backpack
         task.wait(.2)
-        mousemoveabs(blend.AbsolutePosition.X, blend.AbsolutePosition.Y)
-        task.wait(.25)
-        mousemoveabs(blend.AbsolutePosition.X+(blend.AbsolutePosition.X), blend.AbsolutePosition.Y+(blend.AbsolutePosition.Y-Mouse.Y)+(blend.AbsolutePosition.Y-Mouse.Y))
-        task.wait(.2)
+        mousemoveabs(blend.AbsolutePosition.X+blend.AbsoluteSize.X/2, blend.AbsolutePosition.Y+blend.AbsoluteSize.Y)
+        task.wait(.2) 
         mouse1click()
-        blending = false
-        mousemoveabs(game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.PlayerStats.Backpack.AbsolutePosition.X,game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.PlayerStats.Backpack.AbsolutePosition.Y+200)
+        mousemoveabs(back.AbsolutePosition.X+back.AbsoluteSize.X/2,back.AbsolutePosition.Y+back.AbsoluteSize.Y)
+        Settings.Pause = false
     else
         warn("Roblox Not Open!")
-        blending = false
+        Settings.Pause = false
     end
 end
 function ClickPlus(Item,TimesToClick)
-    local Mouse = game.Players.LocalPlayer:GetMouse()
     if isrbxactive() == true then
         if game:GetService("MarketplaceService"):UserOwnsGamePassAsync(game.Players.LocalPlayer.UserId, 16633520) then
             local add = game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.BlenderMenu["Add_all"]
             task.wait(.5)
-            mousemoveabs(add.AbsolutePosition.X, add.AbsolutePosition.Y)
-            task.wait(.2)
-            mousemoveabs(add.AbsolutePosition.X+(add.AbsolutePosition.Y/8),add.AbsolutePosition.Y+(add.AbsolutePosition.Y-Mouse.Y)+(add.AbsolutePosition.Y-Mouse.Y))
+            mousemoveabs(add.AbsolutePosition.X+add.AbsoluteSize.X/2, add.AbsolutePosition.Y+add.AbsoluteSize.Y)
             task.wait(.2)
             mouse1click()
             task.wait(.2)
@@ -70,9 +64,7 @@ function ClickPlus(Item,TimesToClick)
         else
             local plus = game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.BlenderMenu.CustomMenu.Inventory[Item].Plus
             task.wait(.5)
-            mousemoveabs(plus.AbsolutePosition.X, plus.AbsolutePosition.Y)
-            task.wait(.2)
-            mousemoveabs(plus.AbsolutePosition.X+(plus.AbsolutePosition.Y/8),plus.AbsolutePosition.Y+(plus.AbsolutePosition.Y-Mouse.Y)+(plus.AbsolutePosition.Y/8))
+            mousemoveabs(plus.AbsolutePosition.X+plus.AbsoluteSize.X/2, plus.AbsolutePosition.Y+plus.AbsoluteSize.Y)
             task.wait(.3)
             for i = 1, TimesToClick do
                 task.wait(.08)
@@ -81,7 +73,7 @@ function ClickPlus(Item,TimesToClick)
             ClickBlend()
         end
     else
-        blending = false
+        Settings.Pause = false
     end
 end
 function GetFruit(Cap)
@@ -101,7 +93,6 @@ end
 function GotoBlender()
     for i,v in pairs(game:GetService("Workspace").Plots.Plot1.PlacedItems.Blenders:GetChildren()) do
         if v:FindFirstChild("CanBeAccesed") and v.CanBeAccesed.Value == true and v:FindFirstChild("MaxCap") then
-            blending = true
             local Cap = v.MaxCap.Value
             game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = v.BlendMenuOpener.CFrame + Vector3.new(0,5,0)
             task.wait(.5)
@@ -168,6 +159,7 @@ end)
 FarmingBox:AddDropdown('AreaChoice', {Values = GetAreas(),Default = 1,Multi = false,Text = 'Area To Farm',})
 FarmingBox:AddToggle('AutoIngredents', {Text = 'Auto Collect Ingredents',Default = false})
 FarmingBox:AddToggle('AutoBlend', {Text = 'Auto Blend Ingredents',Default = false, Tooltip = 'May Be Buggy, Use FullScreen [Roblox Must Be Open!]'})
+FarmingBox:AddDropdown('EmptyChoice', {Values = {"Blend Token","Blender [Free]"},Default = 1,Multi = false,Text = 'Auto Empty Backpack Method',})
 FarmingBox:AddToggle('AutoEmpty', {Text = 'Auto Empty Backpack',Default = false})
 FarmingBox:AddToggle('AutoToken', {Text = 'Auto Collect Blend Tokens',Default = false})
 FarmingBox:AddToggle('AutoPresent', {Text = 'Auto Collect Presents',Default = false})
@@ -192,11 +184,8 @@ Toggles.AutoBlend:OnChanged(function()
     task.spawn(function()
         while Toggles.AutoBlend.Value == true do task.wait()
             if GetBag() == GetBagSize() then
-                if blending == false then
-                    GotoBlender()
-                end
-            else
-                blending = false
+                Settings.Pause = true
+                GotoBlender()
             end
         end
     end)
@@ -204,10 +193,12 @@ end)
 Toggles.AutoPresent:OnChanged(function()
     task.spawn(function()
         while Toggles.AutoPresent.Value == true do task.wait()
-            for i,v in pairs(game:GetService("Workspace").Areas:GetDescendants()) do
-                if v.Name == "Present_Drop" then
-                    if v:FindFirstChild("Doos_Boven") and not v.Doos_Boven:FindFirstChild("WeldConstraint") then
-                        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = v:GetPivot()
+            if Settings.Pause == false then
+                for i,v in pairs(game:GetService("Workspace").Areas:GetDescendants()) do
+                    if v.Name == "Present_Drop" then
+                        if v:FindFirstChild("Doos_Boven") and not v.Doos_Boven:FindFirstChild("WeldConstraint") then
+                            game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = v:GetPivot()
+                        end
                     end
                 end
             end
@@ -217,7 +208,7 @@ end)
 Toggles.AutoIngredents:OnChanged(function()
     task.spawn(function()
         while Toggles.AutoIngredents.Value == true do task.wait()
-            if blending == false then
+            if Settings.Pause == false then
                 for i,v in pairs(game:GetService("Workspace").Areas[Settings.Area].Items:GetChildren()) do
                     if v:FindFirstChild("Collected") and v.Collected.Value == false then
                         v.Hitbox.Size = Vector3.new(30,30,30)
@@ -236,8 +227,10 @@ end)
 Toggles.AutoToken:OnChanged(function()
     task.spawn(function()
         while Toggles.AutoToken.Value == true do task.wait()
-            if game:GetService("Workspace"):FindFirstChild("BlendToken") and game:GetService("Workspace").BlendToken.Size == Vector3.new(0.5, 3, 3) then
-                game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = game:GetService("Workspace").BlendToken.CFrame
+            if Settings.Pause == false then
+                if game:GetService("Workspace"):FindFirstChild("BlendToken") and game:GetService("Workspace").BlendToken.Size == Vector3.new(0.5, 3, 3) then
+                    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = game:GetService("Workspace").BlendToken.CFrame
+                end
             end
         end
     end)
@@ -245,8 +238,20 @@ end)
 Toggles.AutoEmpty:OnChanged(function()
     task.spawn(function()
         while Toggles.AutoEmpty.Value == true do task.wait(.5)
-            if GetBag() == GetBagSize() then
+            if GetBag() == GetBagSize() and Settings.Empty == "Blend Token" then
                 game:GetService("ReplicatedStorage").EmptyBackpack:FireServer(workspace.EmptyBackpacks.Back_Empty_2.Glow_ring)
+            elseif GetBag() == GetBagSize() and Settings.Empty == "Blender [Free]" then
+                for i,v in pairs(game:GetService("Workspace").Plots.Plot1.PlacedItems.Blenders:GetChildren()) do
+                    if v:FindFirstChild("CanBeAccesed") and v.CanBeAccesed.Value == true then
+                        Settings.Pause = true
+                        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = v.BlendMenuOpener.CFrame + Vector3.new(0,5,0)
+                        task.wait(1)
+                        firesignal(game:GetService("Players").LocalPlayer.PlayerGui.PlotInteraction.Button.MouseButton1Click)
+                        task.wait(.2)
+                        firesignal(game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.BlenderMenu.Exit.MouseButton1Click)
+                        Settings.Pause = false
+                    end
+                end
             end
         end
     end)
@@ -266,6 +271,9 @@ end)
 --Options
 Options.AreaChoice:OnChanged(function()
     Settings.Area = Options.AreaChoice.Value
+end)
+Options.EmptyChoice:OnChanged(function()
+    Settings.Empty = Options.EmptyChoice.Value
 end)
 
 local MenuGroup = Tabs['UI Settings']:AddLeftGroupbox('Menu')
