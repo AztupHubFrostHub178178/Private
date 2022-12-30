@@ -126,7 +126,7 @@ local Tabs = {Main = Window:AddTab('Main'), ['UI Settings'] = Window:AddTab('UI 
 local FarmingBox = Tabs.Main:AddLeftGroupbox('Farming')
 local QuestBox = Tabs.Main:AddLeftGroupbox('Quest Swapper')
 local TeleportsBox = Tabs.Main:AddRightGroupbox('Teleports')
-local WebhookBox = Tabs.Main:AddRightGroupbox('Webhook')
+local WebhookBox = Tabs.Main:AddLeftGroupbox('Webhook')
 
 QuestBox:AddButton("Gearo Quest", function()
     game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui["Quest_Menu"]["Gearo_GiveRandomQuest"]:FireServer()
