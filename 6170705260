@@ -41,10 +41,10 @@ function ClickBlend()
         local blend = game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.BlenderMenu.Blend
         task.wait(.2)
         mousemoveabs(blend.AbsolutePosition.X+blend.AbsoluteSize.X/2, blend.AbsolutePosition.Y+blend.AbsoluteSize.Y)
+        task.wait()
         mousemoveabs(blend.AbsolutePosition.X+blend.AbsoluteSize.X/2, blend.AbsolutePosition.Y+(blend.AbsoluteSize.Y+1))
         task.wait(.2) 
         mouse1click()
-        mousemoveabs(game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.PlayerStats.Backpack.AbsolutePosition.X,game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.PlayerStats.Backpack.AbsolutePosition.Y+game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.PlayerStats.Backpack.AbsoluteSize.Y)
         Settings.Pause = false
     else
         warn("Roblox Not Open!")
@@ -57,6 +57,7 @@ function ClickPlus(Item,TimesToClick)
             local add = game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.BlenderMenu["Add_all"]
             task.wait(.5)
             mousemoveabs(add.AbsolutePosition.X+add.AbsoluteSize.X/2, add.AbsolutePosition.Y+add.AbsoluteSize.Y)
+            task.wait()
             mousemoveabs(add.AbsolutePosition.X+add.AbsoluteSize.X/2, add.AbsolutePosition.Y+(add.AbsoluteSize.Y+1))
             task.wait(.2)
             mouse1click()
@@ -66,6 +67,8 @@ function ClickPlus(Item,TimesToClick)
             local plus = game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.BlenderMenu.CustomMenu.Inventory[Item].Plus
             task.wait(.5)
             mousemoveabs(plus.AbsolutePosition.X+plus.AbsoluteSize.X/2, plus.AbsolutePosition.Y+plus.AbsoluteSize.Y)
+            task.wait()
+            mousemoveabs(plus.AbsolutePosition.X+plus.AbsoluteSize.X/2, plus.AbsolutePosition.Y+(plus.AbsoluteSize.Y+1))
             task.wait(.3)
             for i = 1, TimesToClick do
                 task.wait(.08)
@@ -77,19 +80,19 @@ function ClickPlus(Item,TimesToClick)
         Settings.Pause = false
     end
 end
-function GetFruit(Cap)
-    for i,v in pairs(game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.BlenderMenu.CustomMenu.Inventory:GetChildren()) do
-        if v:IsA("Frame") and v.Visible == true and v:FindFirstChild("YouHave") then
-            if (tonumber(string.split(v.YouHave.TextLabel.Text,":")[2]) - Cap) > 0 then
-                return v.Name,Cap
-            end
-        end
-    end 
-end
+
 function OpenBlenderMenu(Cap)
     firesignal(game:GetService("Players").LocalPlayer.PlayerGui.PlotInteraction.Button.MouseButton1Click)
     task.wait(2.5)
-    ClickPlus(GetFruit(Cap))
+    for i,v in pairs(game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.BlenderMenu.CustomMenu.Inventory:GetChildren()) do
+        if v:IsA("Frame") and v.Visible == true and v:FindFirstChild("YouHave") then
+            if not game:GetService("MarketplaceService"):UserOwnsGamePassAsync(game.Players.LocalPlayer.UserId, 16633520) and (tonumber(string.split(v.YouHave.TextLabel.Text,":")[2]) - Cap) > 0 then
+                ClickPlus(v.Name,Cap)
+            else
+                ClickPlus(v.Name,1)
+            end
+        end
+    end
 end
 function GotoBlender()
     for i,v in pairs(GetPlot().PlacedItems.Blenders:GetChildren()) do
