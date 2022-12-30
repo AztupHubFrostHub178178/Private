@@ -264,7 +264,7 @@ Toggles.AutoEmpty:OnChanged(function()
 end)
 Toggles.AutoBadges:OnChanged(function()
     task.spawn(function()
-        while Toggles.AutoBadges.Value == true do task.wait()
+        while Toggles.AutoBadges.Value == true do task.wait(.1)
             for i,v in pairs(game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.Badges.BadgesList:GetChildren()) do
                 if v:IsA("ImageLabel") and v:FindFirstChild("Claim") and v.Claim:FindFirstChild("TextButton_Roundify_12px") and v.Claim.TextButton_Roundify_12px.ImageColor3 == Color3.fromRGB(172,255,146) then
                     game:GetService("ReplicatedStorage").BadgeRemotes.ClaimBadge:InvokeServer(v)
