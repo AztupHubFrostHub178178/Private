@@ -83,11 +83,39 @@ function Light(Table,Part)
     end
 end
 
+function CreateBillboardGui(part,data)
+    local Gui = Instance.new("BillboardGui",part)
+    Gui.Size = UDim2.new(3.5,0,4,0); Gui.AlwaysOnTop = true; Gui.Brightness = 100;
+    local frame = Instance.new("Frame",Gui)
+    frame.Size = UDim2.new(1,0,1,0); frame.Transparency = .5;
+    local uiListLayout = Instance.new("UIListLayout",frame)
+    local TLT = Instance.new("TextLabel",frame)
+    TLT.Text = "Missing Mesh!"; TLT.BackgroundTransparency=1;TLT.Size=UDim2.new(1,0,(1/6),0);TLT.TextScaled = true;
+    for i,v in pairs(data) do
+        if tostring(i) == "MeshType" then
+           local TL = Instance.new("TextLabel",frame)
+           TL.Text = tostring(i)..": "..tostring(v); TL.BackgroundTransparency=1;TL.Size=UDim2.new(1,0,(1/6),0);TL.TextScaled = true;
+        elseif tostring(i) == "MeshId" then
+            local TL = Instance.new("TextLabel",frame)
+            TL.Text = tostring(i)..": "..tostring(v); TL.BackgroundTransparency=1;TL.Size=UDim2.new(1,0,(1/6),0);TL.TextScaled = true;
+        elseif tostring(i) == "TextureId" then
+            local TL = Instance.new("TextLabel",frame)
+            TL.Text = tostring(i)..": "..tostring(v); TL.BackgroundTransparency=1;TL.Size=UDim2.new(1,0,(1/6),0);TL.TextScaled = true;
+        elseif tostring(i) == "Scale" then
+            local TL = Instance.new("TextLabel",frame)
+            TL.Text = tostring(i)..": X:"..tostring(v.X).." Y:"..tostring(v.Y).." Z:"..tostring(v.Z) TL.BackgroundTransparency=1;TL.Size=UDim2.new(1,0,(1/6),0);TL.TextScaled = true;
+        elseif tostring(i) == "Offset" then
+            local TL = Instance.new("TextLabel",frame)
+            TL.Text = tostring(i)..": X:"..tostring(v.X).." Y:"..tostring(v.Y).." Z:"..tostring(v.Z) TL.BackgroundTransparency=1;TL.Size=UDim2.new(1,0,(1/6),0);TL.TextScaled = true;
+        end
+    end
+end
 
 function Mesh(Table,Part)
     if Table.TextureId == "" then
        Table.TextureId = "rbxassetid://0" 
     end
+    CreateBillboardGui(Part,Table)
     if Table.MeshType == "Enum.MeshType.FileMesh" then
         table.foreach(Table,print)
         game:GetService("Players").LocalPlayer.Character:FindFirstChild("Building Tools").SyncAPI.ServerEndpoint:InvokeServer("CreateMeshes",{[1]={["Part"]=Part}})
@@ -267,6 +295,7 @@ local SaveBuilding = PlotSavingTab:AddButton('Save Building!', function()
     writefile("townPlots/"..Settings.FileName..".plot",game:GetService("HttpService"):JSONEncode(SaveBase(Settings.Target)))
     notifications:notify{Title = "Project Vertigo",Description = "Saved Plot Under, "..Settings.FileName}
 end)
+SaveBuilding:AddTooltip("You Must Have A Plot Down")
 
 --Misc Build Tab
 PlotMiscTab:AddButton('Give Btools', function()
