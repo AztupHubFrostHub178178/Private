@@ -39,12 +39,11 @@ end
 function ClickBlend()
     if isrbxactive() == true then
         local blend = game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.BlenderMenu.Blend
-        local back = game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.PlayerStats.Backpack
         task.wait(.2)
         mousemoveabs(blend.AbsolutePosition.X+blend.AbsoluteSize.X/2, blend.AbsolutePosition.Y+blend.AbsoluteSize.Y)
         task.wait(.2) 
         mouse1click()
-        mousemoveabs(back.AbsolutePosition.X+back.AbsoluteSize.X/2,back.AbsolutePosition.Y+back.AbsoluteSize.Y)
+        mousemoveabs(game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.PlayerStats.Backpack.AbsolutePosition.X,game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.PlayerStats.Backpack.AbsolutePosition.Y)
         Settings.Pause = false
     else
         warn("Roblox Not Open!")
