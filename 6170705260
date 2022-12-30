@@ -90,7 +90,7 @@ function OpenBlenderMenu(Cap)
     ClickPlus(GetFruit(Cap))
 end
 function GotoBlender()
-    for i,v in pairs(game:GetService("Workspace").Plots.Plot1.PlacedItems.Blenders:GetChildren()) do
+    for i,v in pairs(GetPlot().PlacedItems.Blenders:GetChildren()) do
         if v:FindFirstChild("CanBeAccesed") and v.CanBeAccesed.Value == true and v:FindFirstChild("MaxCap") then
             local Cap = v.MaxCap.Value
             game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = v.BlendMenuOpener.CFrame + Vector3.new(0,5,0)
@@ -240,7 +240,7 @@ Toggles.AutoEmpty:OnChanged(function()
             if GetBag() == GetBagSize() and Settings.Empty == "Blend Token" then
                 game:GetService("ReplicatedStorage").EmptyBackpack:FireServer(workspace.EmptyBackpacks.Back_Empty_2.Glow_ring)
             elseif GetBag() == GetBagSize() and Settings.Empty == "Blender [Free]" then
-                for i,v in pairs(game:GetService("Workspace").Plots.Plot1.PlacedItems.Blenders:GetChildren()) do
+                for i,v in pairs(GetPlot().PlacedItems.Blenders:GetChildren()) do
                     if v:FindFirstChild("CanBeAccesed") and v.CanBeAccesed.Value == true then
                         Settings.Pause = true
                         game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = v.BlendMenuOpener.CFrame + Vector3.new(0,5,0)
