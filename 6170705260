@@ -17,9 +17,23 @@ Library:OnUnload(function()
     Library.Unloaded = true
 end)
 
-local Settings = {Area="Area1",Empty="Blend Token",Pause=false}
+local Settings = {Area="Area1",Empty="Blend Token",Pause=false,WebhookSent=false,WebhookLink="",WebhookId=""}
 
 --functions
+function WebhookInit()
+    local data = {["embeds"]= {{["description"] = "Farming On: ||"..game.Players.LocalPlayer.Name.."||",["title"] = "**Current Stats**",["fields"] = {{["name"] = ":moneybag: :",["value"] =  tostring("```\n"..game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.PlayerStats.Money.Ammount.Text.."```"),["inline"] = false},{["name"] = ":bar_chart: :",["value"] =  tostring("```\n"..game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.PlayerStats.Level.Balk.Level.Text.."```"),["inline"] = false},},["color"] = tonumber(0x6fa8dc),["footer"] = {["text"] = os.date()}}}}
+    local json = game:GetService("HttpService"):JSONEncode(data)
+    local headers = {["content-type"] = "application/json"}
+    if syn then request = syn.request end
+    Settings.WebhookId = game:GetService("HttpService"):JSONDecode(request({Url = Settings.WebhookLink.."?wait=true", Body = json, Method = "POST", Headers = headers}).Body).id
+end
+function WebhookUpdate()
+    local data = {["embeds"]= {{["description"] = "Farming On: ||"..game.Players.LocalPlayer.Name.."||",["title"] = "**Current Stats**",["fields"] = {{["name"] = ":moneybag: :",["value"] =  tostring("```\n"..game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.PlayerStats.Money.Ammount.Text.."```"),["inline"] = false},{["name"] = ":bar_chart: :",["value"] =  tostring("```\n"..game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.PlayerStats.Level.Balk.Level.Text.."```"),["inline"] = false},},["color"] = tonumber(0x6fa8dc),["footer"] = {["text"] = os.date()}}}}
+    local json = game:GetService("HttpService"):JSONEncode(data)
+    local headers = {["content-type"] = "application/json"}
+    if syn then request = syn.request end
+    request({Url = ("%s/messages/%s"):format(Settings.WebhookLink,Settings.WebhookId).."?wait=true", Body = json, Method = "PATCH", Headers = headers})
+end
 function GetBag()
     return tonumber(string.split(string.split(game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.PlayerStats.Backpack.Ammount.Text,":")[2],"/")[1])
 end
@@ -112,6 +126,7 @@ local Tabs = {Main = Window:AddTab('Main'), ['UI Settings'] = Window:AddTab('UI 
 local FarmingBox = Tabs.Main:AddLeftGroupbox('Farming')
 local QuestBox = Tabs.Main:AddLeftGroupbox('Quest Swapper')
 local TeleportsBox = Tabs.Main:AddRightGroupbox('Teleports')
+local WebhookBox = Tabs.Main:AddRightGroupbox('Webhook')
 
 QuestBox:AddButton("Gearo Quest", function()
     game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui["Quest_Menu"]["Gearo_GiveRandomQuest"]:FireServer()
@@ -161,6 +176,8 @@ TeleportsBox:AddButton("Goto Gingo [NPC]", function()
     game.Players.LocalPlayer.Character:PivotTo(game:GetService("Workspace").Quests["Gingo"]["Glow_ring"]:GetPivot()+Vector3.new(0,3,0))
 end)
 
+WebhookBox:AddInput('WebhookLink', {Default = "Webhook Link",Numeric = false,Finished = false,Text = 'Webhook Link',Placeholder = 'Webhook Link',})
+WebhookBox:AddToggle('Webhook', {Text = 'Send Webhook',Default = false})
 
 FarmingBox:AddDropdown('AreaChoice', {Values = GetAreas(),Default = 1,Multi = false,Text = 'Area To Farm',})
 FarmingBox:AddToggle('AutoIngredents', {Text = 'Auto Collect Ingredents',Default = false})
@@ -186,6 +203,18 @@ FarmingBox:AddDivider()
 FarmingBox:AddToggle('AutoBadges', {Text = 'Auto Claim Badges',Default = false})
 
 --On Toggles
+Toggles.Webhook:OnChanged(function()
+    task.spawn(function()
+        while Toggles.Webhook.Value == true do task.wait(60)
+            if Settings.WebhookLink ~= "" and Settings.WebhookSent == false then
+                WebhookInit()
+                Settings.WebhookSent = true
+            elseif Settings.WebhookLink ~= "" and Settings.WebhookSent == true then
+                WebhookUpdate()
+            end
+        end
+    end)
+end)
 Toggles.AutoBlend:OnChanged(function()
     task.spawn(function()
         while Toggles.AutoBlend.Value == true do task.wait()
@@ -275,6 +304,9 @@ Toggles.AutoBadges:OnChanged(function()
 end)
 
 --Options
+Options.WebhookLink:OnChanged(function()
+    Settings.WebhookLink = Options.WebhookLink.Value
+end)
 Options.AreaChoice:OnChanged(function()
     Settings.Area = Options.AreaChoice.Value
 end)
