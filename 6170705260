@@ -97,7 +97,7 @@ end
 
 function OpenBlenderMenu(Cap)
     keypress(0x45); task.wait(); keyrelease(0x45)
-    task.wait(1.5)
+    task.wait(.2)
     if game:GetService("MarketplaceService"):UserOwnsGamePassAsync(game.Players.LocalPlayer.UserId, 16633520) then
         ClickPlus("VipGod",1)
     else
