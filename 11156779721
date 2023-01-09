@@ -17,7 +17,7 @@ Library:OnUnload(function()
     Library.Unloaded = true
 end)
 
-local Settings = {HotbarKillAura=1,AmtSpeed=30,HotbarFarming=1,AuraTargets={Players=true,Animals=true,PlayerRenderDistance=3000,PlayerDistanceColor=Color3.fromRGB(255,255,0),PlayerNameColor=Color3.fromRGB(255,255,0),PlayerBoxColor=Color3.fromRGB(255,255,0),PlayerEspEnabled=false,PlayerBoxesEnabled=false,PlayerHealthEnabled=false,PlayerNamesEnabled=false,PlayerDistnacesEneabled=false}}
+local Settings = {HotbarKillAura=1,AmtSpeed=30,HotbarFarming=1,AuraTargets={Players=true,Animals=true,PlayerRenderDistance=3000,PlayerKingdomsColor=Color3.fromRGB(255,0,0),PlayerKingdomsEneabled=false,PlayerDistanceColor=Color3.fromRGB(255,255,0),PlayerNameColor=Color3.fromRGB(255,255,0),PlayerBoxColor=Color3.fromRGB(255,255,0),PlayerEspEnabled=false,PlayerBoxesEnabled=false,PlayerHealthEnabled=false,PlayerNamesEnabled=false,PlayerDistnacesEneabled=false}}
 local Tabs = {Main = Window:AddTab('Main'),Visuals = Window:AddTab('Visuals'),['UI Settings'] = Window:AddTab('UI Settings'),}
 
 --Locals
@@ -37,14 +37,14 @@ function AddPlayerEsp(Player)
     drawings.distance = draw("Text",{Text ="",Font=2,Size=13,Center=true,Outline=true,Color = Settings.PlayerDistanceColor,ZIndex = -9})
     drawings.health = draw("Line",{Thickness =1,Color=Color3.fromRGB(0,255,0),ZIndex = -9})
 	drawings.healthoutline = draw("Line",{Thickness =2,Color=Color3.fromRGB(0,0,0),ZIndex = -10})
-    if Player.Name then
+    if Player.Name ~= nil then
         drawings.name = draw("Text",{Text = Player.Name,Font=2,Size=13,Center=true,Outline=true,Color = Settings.PlayerNameColor,ZIndex = -9})
     else
         drawings.name = draw("Text",{Text = "No Name",Font=2,Size=13,Center=true,Outline=true,Color = Settings.PlayerNameColor,ZIndex = -9})
     end
     drawings.box = draw("Square",{Thickness=1,Filled=false,Color = Settings.PlayerBoxColor,ZIndex = -9})
     drawings.boxoutline = draw("Square",{Thickness=2,Filled=false,Color = Color3.fromRGB(0,0,0),ZIndex = -10})
-    
+
     local render
     render = game:GetService("RunService").RenderStepped:Connect(function()
         if Player.Character ~= nil and Player.Character:FindFirstChild("HumanoidRootPart") ~= nil and Player.Character:FindFirstChild("Humanoid") ~= nil and Player.Character.Humanoid.Health > 0 then
@@ -102,8 +102,7 @@ function AddPlayerEsp(Player)
             end
         else
             for i,v in pairs(drawings) do
-                render:Disconnect()
-                v:Remove()
+                v.Visible = false
             end
         end
     end)
@@ -115,7 +114,7 @@ for i,v in pairs(game:GetService("Players"):GetPlayers()) do
     end
 end
 game:GetService("Players").PlayerAdded:Connect(function(p)
-    AddPlayerEsp()
+    AddPlayerEsp(p)
 end)
 
 
