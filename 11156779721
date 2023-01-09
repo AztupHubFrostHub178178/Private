@@ -184,6 +184,7 @@ CombatTab:AddToggle('KillAura', {Text = 'Kill Aura',Default = false})
 
 MovementTab:AddToggle('Speed', {Text = 'Toggle Speed',Default = false})
 MovementTab:AddSlider('AmtSpeed', {Text = 'Speed',Default = 30,Min = 16,Max = 33,Rounding = 0,Compact = false,})
+MovementTab:AddToggle('InfStamina', {Text = 'Infite Stamina',Default = false})
 
 FarmingTab:AddDropdown('HotbarFarming', {Values = {1,2,3,4,5},Default = 1,Multi = false,Text = 'Hotbar Slot For Farming',})
 FarmingTab:AddToggle('FarmTrees', {Text = 'Auto Mine Nearby Trees',Default = false})
@@ -242,6 +243,13 @@ Toggles.KillAura:OnChanged(function()
                     end
                 end
             end
+        end
+    end)
+end)
+Toggles.InfStamina:OnChanged(function()
+    task.spawn(function()
+        while Toggles.InfStamina.Value do task.wait()
+            game.Players.LocalPlayer:SetAttribute("stamina",1)
         end
     end)
 end)
