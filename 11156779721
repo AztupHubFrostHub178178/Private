@@ -17,11 +17,111 @@ Library:OnUnload(function()
     Library.Unloaded = true
 end)
 
-local Settings = {HotbarKillAura=1,AmtSpeed=30,HotbarFarming=1}
-local Tabs = {Main = Window:AddTab('Main'),['UI Settings'] = Window:AddTab('UI Settings'),}
+local Settings = {HotbarKillAura=1,AmtSpeed=30,HotbarFarming=1,AuraTargets={Players=true,Animals=true,PlayerRenderDistance=3000,PlayerDistanceColor=Color3.fromRGB(255,255,0),PlayerNameColor=Color3.fromRGB(255,255,0),PlayerBoxColor=Color3.fromRGB(255,255,0),PlayerEspEnabled=false,PlayerBoxesEnabled=false,PlayerHealthEnabled=false,PlayerNamesEnabled=false,PlayerDistnacesEneabled=false}}
+local Tabs = {Main = Window:AddTab('Main'),Visuals = Window:AddTab('Visuals'),['UI Settings'] = Window:AddTab('UI Settings'),}
+
+--Locals
+local camera = game:GetService("Workspace").CurrentCamera
 
 --Functions
+function draw(type,propities)
+    local new = Drawing.new(type)
+	for i,v in pairs(propities) do
+		new[i] = v
+	end
+	return new
+end
 
+function AddPlayerEsp(Player)
+    local drawings = {}
+    drawings.distance = draw("Text",{Text ="",Font=2,Size=13,Center=true,Outline=true,Color = Settings.PlayerDistanceColor,ZIndex = -9})
+    drawings.health = draw("Line",{Thickness =1,Color=Color3.fromRGB(0,255,0),ZIndex = -9})
+	drawings.healthoutline = draw("Line",{Thickness =2,Color=Color3.fromRGB(0,0,0),ZIndex = -10})
+    if Player.Name then
+        drawings.name = draw("Text",{Text = Player.Name,Font=2,Size=13,Center=true,Outline=true,Color = Settings.PlayerNameColor,ZIndex = -9})
+    else
+        drawings.name = draw("Text",{Text = "No Name",Font=2,Size=13,Center=true,Outline=true,Color = Settings.PlayerNameColor,ZIndex = -9})
+    end
+    drawings.box = draw("Square",{Thickness=1,Filled=false,Color = Settings.PlayerBoxColor,ZIndex = -9})
+    drawings.boxoutline = draw("Square",{Thickness=2,Filled=false,Color = Color3.fromRGB(0,0,0),ZIndex = -10})
+    
+    local render
+    render = game:GetService("RunService").RenderStepped:Connect(function()
+        if Player.Character ~= nil and Player.Character:FindFirstChild("HumanoidRootPart") ~= nil and Player.Character:FindFirstChild("Humanoid") ~= nil and Player.Character.Humanoid.Health > 0 then
+            local pos2, onscreen = camera:WorldToViewportPoint(Player.Character:GetPivot().Position)
+            local Size = (camera:WorldToViewportPoint(Player.Character:GetPivot().Position - Vector3.new(0, 3, 0)).Y - camera:WorldToViewportPoint(Player.Character:GetPivot().Position + Vector3.new(0, 2.6, 0)).Y) / 2
+            local BoxSize = Vector2.new(math.floor(Size * 1.5), math.floor(Size * 1.9))
+            local pos = Vector2.new(math.floor(pos2.X - Size * 1.5 / 2), math.floor(pos2.Y - Size * 1.6 / 2))
+            if onscreen and Settings.PlayerEspEnabled == true and game.Players.LocalPlayer.Character ~= nil and (game.Players.LocalPlayer.Character:GetPivot().Position - Player.Character:GetPivot().Position).Magnitude <= Settings.PlayerRenderDistance then
+                if Settings.PlayerBoxesEnabled == true then
+                    drawings.box.Visible = true
+                    drawings.box.Color = Settings.PlayerBoxColor
+                    drawings.box.Size = BoxSize
+                    drawings.box.Position = pos
+                    drawings.boxoutline.Visible = true
+                    drawings.boxoutline.Size = BoxSize
+                    drawings.boxoutline.Position = pos
+                else
+                    drawings.box.Visible = false
+                    drawings.boxoutline.Visible = false
+                end
+                if Settings.PlayerNamesEnabled == true then
+                    if drawings.name.Text == "No Name" and Player.Name ~= nil then
+                        drawings.name.Text = Player.Name
+                    end
+                    drawings.name.Visible = true
+                    drawings.name.Color = Settings.PlayerNameColor
+				    drawings.name.Position = drawings.box.Position + Vector2.new(BoxSize.X/2, - drawings.name.TextBounds.Y)
+                else
+                    drawings.name.Visible = false
+                end
+                if Settings.PlayerHealthEnabled == true then
+                    drawings.health.Visible = true
+					drawings.health.From = Vector2.new((pos.X - 5), pos.Y + BoxSize.Y)
+					drawings.health.To = Vector2.new((pos.X - 5), drawings.health.From.Y - (Player.Character.Humanoid.Health / Player.Character.Humanoid.MaxHealth) * BoxSize.Y - 1)
+					drawings.healthoutline.Visible = true
+					drawings.healthoutline.From = Vector2.new((pos.X - 5), (pos.Y + BoxSize.Y)+1)
+					drawings.healthoutline.To = Vector2.new((pos.X - 5), pos.Y - 2)
+					drawings.health.Color = Color3.fromRGB(255,0,0):Lerp(Color3.fromRGB(0,255,0), Player.Character.Humanoid.Health / Player.Character.Humanoid.MaxHealth)
+                else
+                    drawings.health.Visible = false
+                    drawings.healthoutline.Visible = false
+                end
+                if Settings.PlayerDistnacesEneabled == true then
+                    drawings.distance.Visible = true
+                    drawings.distance.Color = Settings.PlayerDistanceColor
+                    drawings.distance.Text = tostring(math.floor((Player.Character:GetPivot().Position-game.Players.LocalPlayer.Character:GetPivot().Position).Magnitude)).." Studs"
+                    drawings.distance.Position = drawings.box.Position + Vector2.new(0,drawings.box.Size.Y) + Vector2.new(BoxSize.X/2,0)
+                else
+                    drawings.distance.Visible = false
+                end
+            else
+                for i,v in pairs(drawings) do
+                    v.Visible = false
+                end
+            end
+        else
+            for i,v in pairs(drawings) do
+                render:Disconnect()
+                v:Remove()
+            end
+        end
+    end)
+end
+
+for i,v in pairs(game:GetService("Players"):GetPlayers()) do
+    if v ~= game:GetService("Players").LocalPlayer then
+        AddPlayerEsp(v)
+    end
+end
+game:GetService("Players").PlayerAdded:Connect(function(p)
+    AddPlayerEsp()
+end)
+
+
+local PlayersTabbox = Tabs.Visuals:AddLeftTabbox()
+local PlayersTab = PlayersTabbox:AddTab('Players')
+local PlayersCustomTab = PlayersTabbox:AddTab('Customise')
 
 local Combat = Tabs.Main:AddLeftTabbox()
 local Movement = Tabs.Main:AddLeftTabbox()
@@ -32,6 +132,7 @@ local MovementTab = Movement:AddTab('Movement')
 local FarmingTab = Farming:AddTab('Farming')
 
 CombatTab:AddDropdown('HotbarKillAura', {Values = {1,2,3,4,5},Default = 1,Multi = false,Text = 'Hotbar Slot For Kill Aura',})
+CombatTab:AddDropdown('AuraTargets', {Values = {"Players","Animals"},Default = 1,Multi = true,Text = 'Targets',})
 CombatTab:AddToggle('KillAura', {Text = 'Kill Aura',Default = false})
 
 MovementTab:AddToggle('Speed', {Text = 'Toggle Speed',Default = false})
@@ -42,14 +143,46 @@ FarmingTab:AddToggle('FarmTrees', {Text = 'Auto Mine Nearby Trees',Default = fal
 FarmingTab:AddToggle('FarmRocks', {Text = 'Auto Mine Nearby Rocks',Default = false})
 FarmingTab:AddToggle('DestroyStruct', {Text = 'Auto Destroy Nearby Structures',Default = false})
 
+PlayersCustomTab:AddLabel('Boxes Color'):AddColorPicker('PlayerBoxColor', {Default = Color3.fromRGB(255,255,0)})
+PlayersCustomTab:AddLabel('Names Color'):AddColorPicker('PlayerNameColor', {Default = Color3.fromRGB(255,255,0)})
+PlayersCustomTab:AddLabel('Distance Color'):AddColorPicker('PlayerDistanceColor', {Default = Color3.fromRGB(255,255,0)})
+PlayersCustomTab:AddDivider()
+PlayersCustomTab:AddSlider('PlayerRenderDistance', {Text = 'Render Distance',Default = 3000,Min = 1,Max = 10000,Rounding = 0,Compact = false,})
+
+PlayersTab:AddToggle('PlayerEspEnabled', {Text = 'Enabled',Default = false})
+PlayersTab:AddToggle('PlayerBoxesEnabled', {Text = 'Boxes',Default = false})
+PlayersTab:AddToggle('PlayerNamesEnabled', {Text = 'Names',Default = false})
+PlayersTab:AddToggle('PlayerHealthEnabled', {Text = 'Health',Default = false})
+PlayersTab:AddToggle('PlayerDistnacesEneabled', {Text = 'Distances',Default = false})
+
 --On Toggles
 Toggles.KillAura:OnChanged(function()
     task.spawn(function()
         while Toggles.KillAura.Value == true do task.wait()
-            for i,v in pairs(game:GetService("Players"):GetChildren()) do
-                if game.Players.LocalPlayer.Character and v.Character and v.Team ~= game.Players.LocalPlayer.Team and (game.Players.LocalPlayer.Character:GetPivot().Position - v.Character:GetPivot().p).Magnitude <= 15 then
-                    game:GetService("ReplicatedStorage").remoteInterface.interactions.meleePlayer:FireServer(Settings.HotbarKillAura,v)
-                    task.wait(.05)
+            if Settings.AuraTargets.Players == true then
+                for i,v in pairs(game:GetService("Players"):GetChildren()) do
+                    if game.Players.LocalPlayer.Character and v.Character and v.Team ~= game.Players.LocalPlayer.Team and (game.Players.LocalPlayer.Character:GetPivot().Position - v.Character:GetPivot().p).Magnitude <= 15 then
+                        if not v.Character:FindFirstChild("Highlight") then
+                            local h=Instance.new("Highlight",v.Character);h.Name="Highlight";h.FillColor = Color3.fromRGB(255,0,0);h.FillTransparency = 0.3;h.OutlineColor=Color3.fromRGB(0,0,0)
+                        end
+                        game:GetService("ReplicatedStorage").remoteInterface.interactions.meleePlayer:FireServer(Settings.HotbarKillAura,v)
+                        task.wait()
+                    elseif game.Players.LocalPlayer.Character and v.Character and v.Character:FindFirstChild("Highlight") and (game.Players.LocalPlayer.Character:GetPivot().Position - v.Character:GetPivot().p).Magnitude >= 16 then
+                        v.Character.Highlight:Destroy()
+                    end
+                end
+            end
+            if Settings.AuraTargets.Animals == true then
+                for i,v in pairs(game:GetService("Workspace").animals:GetChildren()) do
+                    if v:IsA("Model") and game.Players.LocalPlayer.Character and (game.Players.LocalPlayer.Character:GetPivot().Position - v:GetPivot().p).Magnitude <= 15 then
+                        if not v:FindFirstChild("Highlight") then
+                            local h=Instance.new("Highlight",v);h.Name="Highlight";h.FillColor = Color3.fromRGB(255,0,0);h.FillTransparency = 0.3;h.OutlineColor=Color3.fromRGB(0,0,0)
+                        end
+                        game:GetService("ReplicatedStorage").remoteInterface.interactions.meleeAnimal:FireServer(Settings.HotbarKillAura,v)
+                        task.wait()
+                    elseif v:IsA("Model") and game.Players.LocalPlayer.Character and (game.Players.LocalPlayer.Character:GetPivot().Position - v:GetPivot().p).Magnitude >= 16 and v:FindFirstChild("Highlight") then
+                        v.Highlight:Destroy()
+                    end
                 end
             end
         end
@@ -58,7 +191,7 @@ end)
 Toggles.Speed:OnChanged(function()
     task.spawn(function()
         while Toggles.Speed.Value do task.wait()
-            if Toggles.Speed.Value == true and game.Players.LocalPlayer.Character.Humanoid and game.Players.LocalPlayer.Character.HumanoidRootPart then
+            if Toggles.Speed.Value == true and game.Players.LocalPlayer.Character.Humanoid ~= nil and game.Players.LocalPlayer.Character.HumanoidRootPart ~= nil then
                 if game.Players.LocalPlayer.Character.HumanoidRootPart:FindFirstChild("BV") then
                     game.Players.LocalPlayer.Character.HumanoidRootPart.BV:Destroy()
                 end
@@ -71,10 +204,10 @@ Toggles.Speed:OnChanged(function()
 end)
 Toggles.FarmTrees:OnChanged(function()
     task.spawn(function()
-        while Toggles.FarmTrees.Value == true do task.wait()
+        while Toggles.FarmTrees.Value == true do task.wait(.05)
             for i,v in pairs(game:GetService("Workspace").worldResources.choppable:GetDescendants()) do
-                if v:IsA("Model") and (game.Players.LocalPlayer.Character.HumanoidRootPart.Position - v:GetPivot().Position).Magnitude <= 15 then
-                    game:GetService("ReplicatedStorage").remoteInterface.interactions.chop:FireServer(3,v,v:GetPivot())
+                if game.Players.LocalPlayer.Character.HumanoidRootPart ~= nil and v:IsA("Model") and (game.Players.LocalPlayer.Character.HumanoidRootPart.Position - v:GetPivot().Position).Magnitude <= 15 then
+                    game:GetService("ReplicatedStorage").remoteInterface.interactions.chop:FireServer(Settings.HotbarFarming,v,v:GetPivot())
                     task.wait()
                 end
             end
@@ -83,10 +216,10 @@ Toggles.FarmTrees:OnChanged(function()
 end)
 Toggles.FarmRocks:OnChanged(function()
     task.spawn(function()
-        while Toggles.FarmRocks.Value == true do task.wait()
+        while Toggles.FarmRocks.Value == true do task.wait(.05)
             for i,v in pairs(game:GetService("Workspace").worldResources.mineable:GetDescendants()) do
-                if v:IsA("Model") and (game.Players.LocalPlayer.Character.HumanoidRootPart.Position - v:GetPivot().Position).Magnitude <= 15 then
-                    game:GetService("ReplicatedStorage").remoteInterface.interactions.mine:FireServer(3,v,v:GetPivot())
+                if game.Players.LocalPlayer.Character.HumanoidRootPart ~= nil and v:IsA("Model") and (game.Players.LocalPlayer.Character.HumanoidRootPart.Position - v:GetPivot().Position).Magnitude <= 15 then
+                    game:GetService("ReplicatedStorage").remoteInterface.interactions.mine:FireServer(Settings.HotbarFarming,v,v:GetPivot())
                     task.wait()
                 end
             end
@@ -95,15 +228,30 @@ Toggles.FarmRocks:OnChanged(function()
 end)
 Toggles.DestroyStruct:OnChanged(function()
     task.spawn(function()
-        while Toggles.FarmRocks.Value == true do task.wait()
+        while Toggles.DestroyStruct.Value == true do task.wait(.05)
             for i,v in pairs(game:GetService("Workspace").placedStructures:GetDescendants()) do
-                if v:IsA("Model") and (game.Players.LocalPlayer.Character.HumanoidRootPart.Position - v:GetPivot().Position).Magnitude <= 15 then
-                    game:GetService("ReplicatedStorage").remoteInterface.interactions.hitStructure:FireServer(3,v,v:GetPivot())
+                if game.Players.LocalPlayer.Character.HumanoidRootPart ~= nil and v:IsA("Model") and (game.Players.LocalPlayer.Character.HumanoidRootPart.Position - v:GetPivot().Position).Magnitude <= 15 then
+                    game:GetService("ReplicatedStorage").remoteInterface.interactions.hitStructure:FireServer(Settings.HotbarFarming,v,v:GetPivot())
                     task.wait()
                 end
             end
         end
     end)
+end)
+Toggles.PlayerEspEnabled:OnChanged(function()
+    Settings.PlayerEspEnabled = Toggles.PlayerEspEnabled.Value
+end)
+Toggles.PlayerBoxesEnabled:OnChanged(function()
+    Settings.PlayerBoxesEnabled = Toggles.PlayerBoxesEnabled.Value
+end)
+Toggles.PlayerNamesEnabled:OnChanged(function()
+    Settings.PlayerNamesEnabled = Toggles.PlayerNamesEnabled.Value
+end)
+Toggles.PlayerHealthEnabled:OnChanged(function()
+    Settings.PlayerHealthEnabled = Toggles.PlayerHealthEnabled.Value
+end)
+Toggles.PlayerDistnacesEneabled:OnChanged(function()
+    Settings.PlayerDistnacesEneabled = Toggles.PlayerDistnacesEneabled.Value
 end)
 
 --Options
@@ -116,6 +264,21 @@ end)
 Options.AmtSpeed:OnChanged(function()
     Settings.AmtSpeed = Options.AmtSpeed.Value
 end)
+Options.AuraTargets:OnChanged(function()
+    Settings.AuraTargets = Options.AuraTargets.Value
+end)
+Options.PlayerBoxColor:OnChanged(function()
+    Settings.PlayerBoxColor = Options.PlayerBoxColor.Value
+end)
+Options.PlayerNameColor:OnChanged(function()
+    Settings.PlayerNameColor = Options.PlayerNameColor.Value
+end)
+Options.PlayerDistanceColor:OnChanged(function()
+    Settings.PlayerDistanceColor = Options.PlayerDistanceColor.Value
+end)
+Options.PlayerRenderDistance:OnChanged(function()
+    Settings.PlayerRenderDistance = Options.PlayerRenderDistance.Value
+end)
 
 
 local MenuGroup = Tabs['UI Settings']:AddLeftGroupbox('Menu')
@@ -127,7 +290,7 @@ SaveManager:SetLibrary(Library)
 SaveManager:IgnoreThemeSettings() 
 SaveManager:SetIgnoreIndexes({ 'MenuKeybind' }) 
 ThemeManager:SetFolder('ProjectVertigo')
-SaveManager:SetFolder('ProjectVertigo/BlendingSimulator2')
+SaveManager:SetFolder('ProjectVertigo/TheSurvivalGame')
 SaveManager:BuildConfigSection(Tabs['UI Settings']) 
 ThemeManager:ApplyToTab(Tabs['UI Settings'])
 SaveManager:LoadAutoloadConfig()
