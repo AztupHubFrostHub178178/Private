@@ -46,6 +46,7 @@ function AddAnimalEsp(Object)
                 if Settings.AnimalEspEnabled == true and onscreen and (game.Players.LocalPlayer.Character:GetPivot().Position - Object:GetPivot().Position).Magnitude <= Settings.AnimalRenderDistance and Object.Humanoid.Health > 0 then
                     if Settings.AnimalDistnacesEneabled == true then
                         drawings.distance.Visible = true
+                        drawings.distance.Color = Settings.AnimalDistanceColor
                         drawings.distance.Text = tostring(math.floor((Object:GetPivot().Position-game.Players.LocalPlayer.Character:GetPivot().Position).Magnitude)).." Studs"
                         drawings.distance.Position = pos-Vector2.new(0,drawings.distance.TextBounds.Y)
                     else
@@ -53,6 +54,7 @@ function AddAnimalEsp(Object)
                     end
                     if Settings.AnimalNamesEnabled == true then
                         drawings.name.Visible = true
+                        drawings.name.Color = Settings.AnimalNameColor
                         drawings.name.Text = Object.Name
                         drawings.name.Position = pos
                     else
