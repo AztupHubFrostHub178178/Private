@@ -164,7 +164,7 @@ end)
 local PlayersTabbox = Tabs.Visuals:AddLeftTabbox()
 local PlayersTab = PlayersTabbox:AddTab('Players')
 local PlayersCustomTab = PlayersTabbox:AddTab('Customise')
-local AnimalTabbox = Tabs.Visuals:AddLeftTabbox()
+local AnimalTabbox = Tabs.Visuals:AddRightTabbox()
 local AnimalTab = AnimalTabbox:AddTab('Animals')
 local AnimalCustomTab = AnimalTabbox:AddTab('Customise')
 
