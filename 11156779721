@@ -190,6 +190,7 @@ FarmingTab:AddDropdown('HotbarFarming', {Values = {1,2,3,4,5},Default = 1,Multi 
 FarmingTab:AddToggle('FarmTrees', {Text = 'Auto Mine Nearby Trees',Default = false})
 FarmingTab:AddToggle('FarmRocks', {Text = 'Auto Mine Nearby Rocks',Default = false})
 FarmingTab:AddToggle('DestroyStruct', {Text = 'Auto Destroy Nearby Structures',Default = false})
+FarmingTab:AddToggle('InstaPickup', {Text = 'Fast Pickup',Default = false})
 
 PlayersCustomTab:AddLabel('Boxes Color'):AddColorPicker('PlayerBoxColor', {Default = Color3.fromRGB(255,255,0)})
 PlayersCustomTab:AddLabel('Names Color'):AddColorPicker('PlayerNameColor', {Default = Color3.fromRGB(255,255,0)})
@@ -211,7 +212,6 @@ AnimalCustomTab:AddLabel('Names Color'):AddColorPicker('AnimalNameColor', {Defau
 AnimalCustomTab:AddLabel('Distance Color'):AddColorPicker('AnimalDistanceColor', {Default = Color3.fromRGB(255,255,0)})
 AnimalCustomTab:AddDivider()
 AnimalCustomTab:AddSlider('AnimalRenderDistance', {Text = 'Render Distance',Default = 3000,Min = 1,Max = 10000,Rounding = 0,Compact = false,})
-
 
 --On Toggles
 Toggles.KillAura:OnChanged(function()
@@ -263,6 +263,18 @@ Toggles.Speed:OnChanged(function()
                 bv = Instance.new("BodyVelocity",game.Players.LocalPlayer.Character.HumanoidRootPart);bv.Name = "BV"; bv.MaxForce = Vector3.new(100000, 0, 100000); bv.Velocity = (game.Players.LocalPlayer.Character.Humanoid.MoveDirection) * Settings.AmtSpeed
             elseif Toggles.Speed.Value == false and game.Players.LocalPlayer.Character.HumanoidRootPart:FindFirstChild("BV") then
                 game.Players.LocalPlayer.Character.HumanoidRootPart.BV:Destroy()
+            end
+        end
+    end)
+end)
+Toggles.InstaPickup:OnChanged(function()
+    task.spawn(function()
+        while Toggles.InstaPickup.Value == true do task.wait()
+            for i,v in pairs(game:GetService("Workspace").droppedItems:GetChildren()) do
+                if (v.Position - game.Players.LocalPlayer.Character:GetPivot().Position).Magnitude <= 15 and v:FindFirstChildOfClass("Model") then
+                    v.Anchored = true
+                    v.Size = Vector3.new(15,15,15)
+                end
             end
         end
     end)
