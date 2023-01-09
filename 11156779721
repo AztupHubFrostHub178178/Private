@@ -17,7 +17,7 @@ Library:OnUnload(function()
     Library.Unloaded = true
 end)
 
-local Settings = {HotbarKillAura=1,AmtSpeed=30,HotbarFarming=1,AuraTargets={Players=true,Animals=true,PlayerRenderDistance=3000,PlayerKingdomsColor=Color3.fromRGB(255,0,0),PlayerKingdomsEneabled=false,PlayerDistanceColor=Color3.fromRGB(255,255,0),PlayerNameColor=Color3.fromRGB(255,255,0),PlayerBoxColor=Color3.fromRGB(255,255,0),PlayerEspEnabled=false,PlayerBoxesEnabled=false,PlayerHealthEnabled=false,PlayerNamesEnabled=false,PlayerDistnacesEneabled=false}}
+local Settings = {HotbarKillAura=1,AmtSpeed=30,HotbarFarming=1,AuraTargets={Players=true,Animals=true},AnimalDistnacesEneabled=false,AnimalEspEnabled=false,AnimalNamesEnabled=false,AnimalNameColor=Color3.fromRGB(0,255,0),AnimalDistanceColor=Color3.fromRGB(0,255,0),AnimalRenderDistance=3000,PlayerRenderDistance=3000,PlayerDistanceColor=Color3.fromRGB(255,255,0),PlayerNameColor=Color3.fromRGB(255,255,0),PlayerBoxColor=Color3.fromRGB(255,255,0),PlayerEspEnabled=false,PlayerBoxesEnabled=false,PlayerHealthEnabled=false,PlayerNamesEnabled=false,PlayerDistnacesEneabled=false}
 local Tabs = {Main = Window:AddTab('Main'),Visuals = Window:AddTab('Visuals'),['UI Settings'] = Window:AddTab('UI Settings'),}
 
 --Locals
@@ -30,6 +30,41 @@ function draw(type,propities)
 		new[i] = v
 	end
 	return new
+end
+
+function AddAnimalEsp(Object)
+    local drawings = {}
+    drawings.distance = draw("Text",{Text ="",Font=2,Size=13,Center=true,Outline=true,Color = Settings.AnimalDistanceColor,ZIndex = -9})
+    drawings.name = draw("Text",{Text = Object.Name,Font=2,Size=13,Center=true,Outline=true,Color = Settings.AnimalNameColor,ZIndex = -9})
+    
+    local renderobjects
+    renderobjects = game:GetService("RunService").RenderStepped:Connect(function()
+            if Object ~= nil then
+                local pos2, onscreen = camera:WorldToViewportPoint(Object:GetPivot().Position)
+                local pos = Vector2.new(pos2.X,pos2.Y)
+
+                if Settings.AnimalEspEnabled == true and onscreen and (game.Players.LocalPlayer.Character:GetPivot().Position - Object:GetPivot().Position).Magnitude <= Settings.AnimalRenderDistance and Object.Humanoid.Health > 0 then
+                    if Settings.AnimalDistnacesEneabled == true then
+                        drawings.distance.Visible = true
+                        drawings.distance.Text = tostring(math.floor((Object:GetPivot().Position-game.Players.LocalPlayer.Character:GetPivot().Position).Magnitude)).." Studs"
+                        drawings.distance.Position = pos-Vector2.new(0,drawings.distance.TextBounds.Y)
+                    else
+                        drawings.distance.Visible = false
+                    end
+                    if Settings.AnimalNamesEnabled == true then
+                        drawings.name.Visible = true
+                        drawings.name.Text = Object.Name
+                        drawings.name.Position = pos
+                    else
+                        drawings.name.Visible = false
+                    end
+                else
+                    for i,v in pairs(drawings) do
+                        v.Visible = false
+                    end
+                end
+            end
+    end)
 end
 
 function AddPlayerEsp(Player)
@@ -117,10 +152,21 @@ game:GetService("Players").PlayerAdded:Connect(function(p)
     AddPlayerEsp(p)
 end)
 
+for i,v in pairs(game:GetService("Workspace").animals:GetChildren()) do
+    if v:IsA("Model") then
+        AddAnimalEsp(v)
+    end
+end
+game:GetService("Workspace").animals.ChildAdded:Connect(function(p)
+    AddAnimalEsp(p)
+end)
 
 local PlayersTabbox = Tabs.Visuals:AddLeftTabbox()
 local PlayersTab = PlayersTabbox:AddTab('Players')
 local PlayersCustomTab = PlayersTabbox:AddTab('Customise')
+local AnimalTabbox = Tabs.Visuals:AddLeftTabbox()
+local AnimalTab = AnimalTabbox:AddTab('Animals')
+local AnimalCustomTab = AnimalTabbox:AddTab('Customise')
 
 local Combat = Tabs.Main:AddLeftTabbox()
 local Movement = Tabs.Main:AddLeftTabbox()
@@ -136,7 +182,6 @@ CombatTab:AddToggle('KillAura', {Text = 'Kill Aura',Default = false})
 
 MovementTab:AddToggle('Speed', {Text = 'Toggle Speed',Default = false})
 MovementTab:AddSlider('AmtSpeed', {Text = 'Speed',Default = 30,Min = 16,Max = 33,Rounding = 0,Compact = false,})
-MovementTab:AddToggle('InfStamina', {Text = 'Infinte Stamina',Default = false})
 
 FarmingTab:AddDropdown('HotbarFarming', {Values = {1,2,3,4,5},Default = 1,Multi = false,Text = 'Hotbar Slot For Farming',})
 FarmingTab:AddToggle('FarmTrees', {Text = 'Auto Mine Nearby Trees',Default = false})
@@ -154,6 +199,16 @@ PlayersTab:AddToggle('PlayerBoxesEnabled', {Text = 'Boxes',Default = false})
 PlayersTab:AddToggle('PlayerNamesEnabled', {Text = 'Names',Default = false})
 PlayersTab:AddToggle('PlayerHealthEnabled', {Text = 'Health',Default = false})
 PlayersTab:AddToggle('PlayerDistnacesEneabled', {Text = 'Distances',Default = false})
+
+AnimalTab:AddToggle('AnimalEspEnabled', {Text = 'Enabled',Default = false})
+AnimalTab:AddToggle('AnimalNamesEnabled', {Text = 'Names',Default = false})
+AnimalTab:AddToggle('AnimalDistnacesEneabled', {Text = 'Distances',Default = false})
+
+AnimalCustomTab:AddLabel('Names Color'):AddColorPicker('AnimalNameColor', {Default = Color3.fromRGB(255,255,0)})
+AnimalCustomTab:AddLabel('Distance Color'):AddColorPicker('AnimalDistanceColor', {Default = Color3.fromRGB(255,255,0)})
+AnimalCustomTab:AddDivider()
+AnimalCustomTab:AddSlider('AnimalRenderDistance', {Text = 'Render Distance',Default = 3000,Min = 1,Max = 10000,Rounding = 0,Compact = false,})
+
 
 --On Toggles
 Toggles.KillAura:OnChanged(function()
@@ -191,7 +246,7 @@ end)
 Toggles.Speed:OnChanged(function()
     task.spawn(function()
         while Toggles.Speed.Value do task.wait()
-            if Toggles.Speed.Value == true and game.Players.LocalPlayer.Character.Humanoid ~= nil and game.Players.LocalPlayer.Character.HumanoidRootPart ~= nil then
+            if Toggles.Speed.Value == true and game.Players.LocalPlayer.Character ~= nil and game.Players.LocalPlayer.Character.Humanoid ~= nil and game.Players.LocalPlayer.Character.HumanoidRootPart ~= nil then
                 if game.Players.LocalPlayer.Character.HumanoidRootPart:FindFirstChild("BV") then
                     game.Players.LocalPlayer.Character.HumanoidRootPart.BV:Destroy()
                 end
@@ -199,13 +254,6 @@ Toggles.Speed:OnChanged(function()
             elseif Toggles.Speed.Value == false and game.Players.LocalPlayer.Character.HumanoidRootPart:FindFirstChild("BV") then
                 game.Players.LocalPlayer.Character.HumanoidRootPart.BV:Destroy()
             end
-        end
-    end)
-end)
-Toggles.InfStamina:OnChanged(function()
-    task.spawn(function()
-        while Toggles.InfStamina.Value do task.wait()
-            game:GetService("Players").LocalPlayer:SetAttribute("stamina",1)
         end
     end)
 end)
@@ -260,6 +308,15 @@ end)
 Toggles.PlayerDistnacesEneabled:OnChanged(function()
     Settings.PlayerDistnacesEneabled = Toggles.PlayerDistnacesEneabled.Value
 end)
+Toggles.AnimalEspEnabled:OnChanged(function()
+    Settings.AnimalEspEnabled = Toggles.AnimalEspEnabled.Value
+end)
+Toggles.AnimalNamesEnabled:OnChanged(function()
+    Settings.AnimalNamesEnabled = Toggles.AnimalNamesEnabled.Value
+end)
+Toggles.AnimalDistnacesEneabled:OnChanged(function()
+    Settings.AnimalDistnacesEneabled = Toggles.AnimalDistnacesEneabled.Value
+end)
 
 --Options
 Options.HotbarKillAura:OnChanged(function()
@@ -286,7 +343,15 @@ end)
 Options.PlayerRenderDistance:OnChanged(function()
     Settings.PlayerRenderDistance = Options.PlayerRenderDistance.Value
 end)
-
+Options.AnimalRenderDistance:OnChanged(function()
+    Settings.AnimalRenderDistance = Options.AnimalRenderDistance.Value
+end)
+Options.AnimalDistanceColor:OnChanged(function()
+    Settings.AnimalDistanceColor = Options.AnimalDistanceColor.Value
+end)
+Options.AnimalNameColor:OnChanged(function()
+    Settings.AnimalNameColor = Options.AnimalNameColor.Value
+end)
 
 local MenuGroup = Tabs['UI Settings']:AddLeftGroupbox('Menu')
 MenuGroup:AddButton('Unload', function() Library:Unload() end)
