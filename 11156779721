@@ -25,16 +25,9 @@ local camera = game:GetService("Workspace").CurrentCamera
 local keys = {}
 
 --Get Keys
-for i, v in next, getgc() do 
-    if typeof(v) == "function" and islclosure(v) then
-        local constants = debug.getconstants(v)
-        if rawget(constants, 1) == "Destroy" and rawget(constants, 2) == "new" then 
-            for _, upvalue in next, debug.getupvalues(v) do 
-                if typeof(upvalue) == "table" and rawget(upvalue, "meleePlayer") then 
-                    keys = upvalue
-                end    
-            end
-        end
+for i, v in next, getgc(true) do 
+    if typeof(v) == "table" and rawget(v, 'meleePlayer') then
+        keys = v
     end
 end
 
