@@ -15,7 +15,7 @@ makefolder("townPlots")
 
 --Settings
 local Settings = {Target="",FileName="",BuildSpeed="Normal",RantimeReset=150,ForceBtools=true,IsBuilding=false}
-local speeds = {Normal=.3,Fast=.27,Slow=1}
+local speeds = {Normal=.5,Fast=.3,Slow=1}
 
 --Functions
 function SaveBase(Player)
@@ -210,9 +210,9 @@ function LoadBase(Table)
     Rantimes = 0
     Settings.RantimeReset = 0
     if Settings.BuildSpeed == ("Normal" or "Slow") then
-        Settings.RantimeReset = 80
+        Settings.RantimeReset = 65
     else
-        Settings.RantimeReset = 15
+        Settings.RantimeReset = 10
     end
     local oldtick = tick()
     local MyPlot = game:GetService("Workspace")["Private Building Areas"][game.Players.LocalPlayer.Name.."BuildArea"].Build
@@ -231,7 +231,7 @@ function LoadBase(Table)
             notifications:notify{Title = "Project Vertigo",Description = "Script Is Waiting To Not Get Kicked!"}
             Rantimes = 0
             SaveInGame(Settings.FileName)
-            task.wait(4.5)
+            task.wait(8)
         else
             notifications:notify{Title = "Project Vertigo",Description = "Creating Parts, "..tostring(i).."/"..tostring(#Table).." | "..(math.floor((i/#Table)*100)).."%"}
             task.wait(speeds[Settings.BuildSpeed])
