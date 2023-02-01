@@ -1,0 +1,180 @@
+local repo = 'https://raw.githubusercontent.com/wally-rblx/LinoriaLib/main/'
+local notifications = loadstring(game:HttpGet(("https://raw.githubusercontent.com/AbstractPoo/Main/main/Notifications.lua"),true))()
+
+local Library = loadstring(game:HttpGet(repo .. 'Library.lua'))()
+local ThemeManager = loadstring(game:HttpGet(repo .. 'addons/ThemeManager.lua'))()
+local SaveManager = loadstring(game:HttpGet(repo .. 'addons/SaveManager.lua'))()
+
+local Window = Library:CreateWindow({
+    Title = 'Project Vertigo | Miners Haven',
+    Center = true, 
+    AutoShow = true,
+})
+
+Library.KeybindFrame.Visible = false; -- todo: add a function for this
+
+Library:OnUnload(function()
+    Library.Unloaded = true
+end)
+
+--Locals
+local MyTycoon = game:GetService("Players").LocalPlayer.PlayerTycoon.Value
+local MoneyLibary = require(game:GetService("ReplicatedStorage").MoneyLib)
+
+--Functions
+function GetDropped()
+    local tbl = {}
+    for i,v in pairs(game:GetService("Workspace").DroppedParts[MyTycoon.Name]:GetChildren()) do
+        table.insert(tbl,v)        
+    end
+    return tbl
+end
+
+local Settings = {LoopPulse=false,AutoPulse=false,LoopRemoteDrop=false,AutoLoadSetup=false,LoadAfter=5,ShouldReload=false,LayoutSelected=1,AutoRebirth=false,LoopUpgrader=false,SelectedUpgrader="nil",SelectedFurnace="nil"}
+local Tabs = {Main = Window:AddTab('Main'),['UI Settings'] = Window:AddTab('UI Settings'),}
+
+local OresTabbox = Tabs.Main:AddLeftTabbox()
+local OresTab = OresTabbox:AddTab('Ores')
+local RebirthTabbox = Tabs.Main:AddRightTabbox()
+local RebirthTab = RebirthTabbox:AddTab('Rebirthing')
+local MiscTabbox = Tabs.Main:AddLeftTabbox()
+local MiscTab = MiscTabbox:AddTab('Misc')
+
+OresTab:AddInput('SelectedUpgrader', {Default = 'Upgrader',Numeric = false,Finished = false,Text = 'Upgrader',Placeholder = 'Upgrader Name',})
+OresTab:AddToggle('LoopUpgrader', {Text = 'Loop Upgrader',Default = false})
+OresTab:AddDivider()
+OresTab:AddInput('SelectedFurnace', {Default = 'Furnace',Numeric = false,Finished = false,Text = 'Furnace',Placeholder = 'Furnace',})
+OresTab:AddButton('SellOres', function()
+    for i,v in pairs(GetDropped()) do
+        if MyTycoon:FindFirstChild(Settings.SelectedFurnace) then
+            firetouchinterest(v,MyTycoon[Settings.SelectedFurnace].Model.Lava,0)
+            task.wait()
+            firetouchinterest(v,MyTycoon[Settings.SelectedFurnace].Model.Lava,1)
+        end
+    end
+end)
+
+RebirthTab:AddToggle('AutoRebirth', {Text = 'Auto Rebirth',Default = false})
+RebirthTab:AddToggle('AutoLoadSetup', {Text = 'Load Layout',Default = false})
+RebirthTab:AddDropdown('LayoutSelected', {Values = {1,2,3},Default = 1,Multi = false,Text = 'Layout',})
+RebirthTab:AddToggle('ShouldReload', {Text = 'Reload Layout',Default = false})
+RebirthTab:AddSlider('LoadAfter', {Text = 'Reload After (s)',Default = 5,Min = 1,Max = 60,Rounding = 0,Compact = false,})
+
+MiscTab:AddToggle('LoopProximtyPrompt', {Text = 'Auto Excavator',Default = false})
+MiscTab:AddToggle('LoopRemoteDrop', {Text = 'Auto Remote',Default = false})
+MiscTab:AddToggle('LoopPulse', {Text = 'Auto Pulse',Default = false})
+MiscTab:AddButton('Get Free Daily Crate', function()
+    firesignal(game:GetService("Players").LocalPlayer.PlayerGui.GUI.SpookMcDookShop.RedeemFrame.MouseButton1Click)
+end)
+MiscTab:AddDivider()
+MiscTab:AddToggle('ToggleCraftsMan', {Text = 'Craftman Gui',Default = false})
+
+--Toggles
+Toggles.ToggleCraftsMan:OnChanged(function()
+    game:GetService("Players").LocalPlayer.PlayerGui.GUI.Craftsman.Visible = Toggles.ToggleCraftsMan.Value
+end)
+Toggles.LoopPulse:OnChanged(function()
+    Settings.LoopPulse = Toggles.LoopPulse.Value
+    task.spawn(function()
+        while Settings.LoopPulse == true do task.wait()
+            if Settings.LoopPulse == true then
+                game:GetService("ReplicatedStorage").Pulse:FireServer()
+            end
+        end
+    end)
+end)
+Toggles.LoopRemoteDrop:OnChanged(function()
+    Settings.LoopRemoteDrop = Toggles.LoopRemoteDrop.Value
+    task.spawn(function()
+        while Settings.LoopRemoteDrop == true do task.wait()
+            if Settings.LoopRemoteDrop == true then
+                game:GetService("ReplicatedStorage").RemoteDrop:FireServer()
+            end
+        end
+    end)
+end)
+Toggles.LoopUpgrader:OnChanged(function()
+    Settings.LoopUpgrader = Toggles.LoopUpgrader.Value
+    task.spawn(function()
+        while Settings.LoopUpgrader do task.wait()
+            if Settings.LoopUpgrader then
+                for i,v in pairs(GetDropped()) do
+                    if MyTycoon:FindFirstChild(Settings.SelectedUpgrader) and MyTycoon[Settings.SelectedUpgrader].Model:FindFirstChild("Upgrade") then
+                        firetouchinterest(v,MyTycoon[Settings.SelectedUpgrader].Model.Upgrade,0)
+                        task.wait()
+                        firetouchinterest(v,MyTycoon[Settings.SelectedUpgrader].Model.Upgrade,1)
+                    elseif MyTycoon:FindFirstChild(Settings.SelectedUpgrader) then
+                        firetouchinterest(v,MyTycoon[Settings.SelectedUpgrader].Model.Cannon,0)
+                        task.wait()
+                        firetouchinterest(v,MyTycoon[Settings.SelectedUpgrader].Model.Cannon,1)
+                    end
+                end
+            end
+        end
+    end)
+end)
+Toggles.LoopProximtyPrompt:OnChanged(function()
+    Settings.LoopProximtyPrompt = Toggles.LoopProximtyPrompt.Value
+    task.spawn(function()
+        while Settings.LoopProximtyPrompt do task.wait()
+            if Settings.LoopProximtyPrompt then
+                for i,v in pairs(MyTycoon:GetChildren()) do
+                    if string.find(v.Name,"Excavator") then
+                       fireproximityprompt(v.Model.Internal.ProximityPrompt)
+                    end
+                end
+            end
+        end
+    end)
+end)
+Toggles.AutoRebirth:OnChanged(function()
+    Settings.AutoRebirth = Toggles.AutoRebirth.Value
+    task.spawn(function()
+        while Settings.AutoRebirth do task.wait()
+            if game:GetService("Players").LocalPlayer.PlayerGui.GUI.Money.Value >= MoneyLibary.RebornPrice(game:GetService("Players").LocalPlayer) and (game:GetService("Players").LocalPlayer.PlayerTycoon.Value:GetPivot().p - game.Players.LocalPlayer.Character:GetPivot().p).Magnitude <= 150 and Settings.AutoRebirth  == true then
+                game:GetService("ReplicatedStorage").Rebirth:InvokeServer(26)
+                if Settings.AutoLoadSetup == true then
+                    game:GetService("ReplicatedStorage").Layouts:InvokeServer("Load","Layout"..Settings.LayoutSelected)
+                    if Settings.ShouldReload == true then
+                        task.wait(Settings.LoadAfter)
+                        game:GetService("ReplicatedStorage").Layouts:InvokeServer("Load","Layout"..Settings.LayoutSelected)
+                    end
+                end
+            end
+        end
+    end)
+end)
+Toggles.AutoLoadSetup:OnChanged(function()
+    Settings.AutoLoadSetup = Toggles.AutoLoadSetup.Value
+end)
+Toggles.ShouldReload:OnChanged(function()
+    Settings.ShouldReload = Toggles.ShouldReload.Value
+end)
+
+--Options
+Options.SelectedUpgrader:OnChanged(function()
+    Settings.SelectedUpgrader = Options.SelectedUpgrader.Value
+end)
+Options.SelectedFurnace:OnChanged(function()
+    Settings.SelectedFurnace = Options.SelectedFurnace.Value
+end)
+Options.LayoutSelected:OnChanged(function()
+    Settings.LayoutSelected = Options.LayoutSelected.Value
+end)
+Options.LoadAfter:OnChanged(function()
+    Settings.LoadAfter = Options.LoadAfter.Value
+end)
+
+local MenuGroup = Tabs['UI Settings']:AddLeftGroupbox('Menu')
+MenuGroup:AddButton('Unload', function() Library:Unload() end)
+MenuGroup:AddLabel('Menu bind'):AddKeyPicker('MenuKeybind', { Default = 'End', NoUI = true, Text = 'Menu keybind' }) 
+Library.ToggleKeybind = Options.MenuKeybind -- Allows you to have a custom keybind for the menu
+ThemeManager:SetLibrary(Library)
+SaveManager:SetLibrary(Library)
+SaveManager:IgnoreThemeSettings() 
+SaveManager:SetIgnoreIndexes({ 'MenuKeybind' }) 
+ThemeManager:SetFolder('ProjectVertigo')
+SaveManager:SetFolder('ProjectVertigo/MinersHaven')
+SaveManager:BuildConfigSection(Tabs['UI Settings']) 
+ThemeManager:ApplyToTab(Tabs['UI Settings'])
+SaveManager:LoadAutoloadConfig()
