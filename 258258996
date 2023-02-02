@@ -20,6 +20,7 @@ end)
 --Locals
 local MyTycoon = game:GetService("Players").LocalPlayer.PlayerTycoon.Value
 local MoneyLibary = require(game:GetService("ReplicatedStorage").MoneyLib)
+if syn then request = syn.request end
 
 --Functions
 function GetDropped()
@@ -30,7 +31,7 @@ function GetDropped()
     return tbl
 end
 
-local Settings = {LoopPulse=false,AutoPulse=false,LoopRemoteDrop=false,AutoLoadSetup=false,LoadAfter=5,ShouldReload=false,LayoutSelected=1,AutoRebirth=false,LoopUpgrader=false,SelectedUpgrader="nil",SelectedFurnace="nil"}
+local Settings = {ItemTracker=false,WebhookLink="",LoopPulse=false,AutoPulse=false,LoopRemoteDrop=false,AutoLoadSetup=false,LoadAfter=5,ShouldReload=false,LayoutSelected=1,AutoRebirth=false,LoopUpgrader=false,SelectedUpgrader="nil",SelectedFurnace="nil"}
 local Tabs = {Main = Window:AddTab('Main'),['UI Settings'] = Window:AddTab('UI Settings'),}
 
 local OresTabbox = Tabs.Main:AddLeftTabbox()
@@ -39,6 +40,8 @@ local RebirthTabbox = Tabs.Main:AddRightTabbox()
 local RebirthTab = RebirthTabbox:AddTab('Rebirthing')
 local MiscTabbox = Tabs.Main:AddLeftTabbox()
 local MiscTab = MiscTabbox:AddTab('Misc')
+local WebhookTabbox = Tabs.Main:AddRightTabbox()
+local WebhookTab = WebhookTabbox:AddTab('Webhook')
 
 OresTab:AddInput('SelectedUpgrader', {Default = 'Upgrader',Numeric = false,Finished = false,Text = 'Upgrader',Placeholder = 'Upgrader Name',})
 OresTab:AddToggle('LoopUpgrader', {Text = 'Loop Upgrader',Default = false})
@@ -69,7 +72,13 @@ end)
 MiscTab:AddDivider()
 MiscTab:AddToggle('ToggleCraftsMan', {Text = 'Craftman Gui',Default = false})
 
+WebhookTab:AddInput('WebhookLink', {Default = 'Link',Numeric = false,Finished = false,Text = 'Link',Placeholder = 'Link',})
+WebhookTab:AddToggle('ItemTracker', {Text = 'Item Tracker',Default = false})
+
 --Toggles
+Toggles.ItemTracker:OnChanged(function()
+    Settings.ItemTracker = Toggles.ItemTracker.Value
+end)
 Toggles.ToggleCraftsMan:OnChanged(function()
     game:GetService("Players").LocalPlayer.PlayerGui.GUI.Craftsman.Visible = Toggles.ToggleCraftsMan.Value
 end)
@@ -151,7 +160,43 @@ Toggles.ShouldReload:OnChanged(function()
     Settings.ShouldReload = Toggles.ShouldReload.Value
 end)
 
+game:GetService("Players").LocalPlayer.PlayerGui.GUI.Notifications.ChildAdded:Connect(function(v)
+    if v.Name == "ItemTemplate" and v:FindFirstChild("Title") and v:FindFirstChild("Tier") and v:FindFirstChild("Icon") and Settings.ItemTracker == true then
+        local ImageId = v.Icon.Image
+        if string.find(ImageId,"rbxasset") then
+           ImageId = string.split(tostring(v.Icon.Image),"//")[2] 
+        end
+        local ImageData = game:GetService("HttpService"):JSONDecode(request({Url="https://thumbnails.roblox.com/v1/assets?assetIds="..tonumber(ImageId).."&returnPolicy=PlaceHolder&size=512x512&format=Png&isCircular=false"}).Body)
+        local ImageLink = ImageData.data[1]["imageUrl"]
+        local Data = {["embeds"]= {{
+            ["title"] = "**New Item**",
+            ["fields"] = {
+                {
+                    ["name"] = ":page_facing_up: **Item**",
+                    ["value"] =  tostring("```\n"..v.Title.Text.."```"),
+                    ["inline"] = true
+                },
+                {
+                    ["name"] = (":arrow_up: **Tier**"),
+                    ["value"] =  tostring("```\n"..v.Tier.Text.."```"),
+                    ["inline"] = true
+                },
+            },
+        ["color"] = tonumber("0x"..tostring(string.split((string.format("#%02X%02X%02X", v.BackgroundColor3.R * 0xFF,v.BackgroundColor3.G * 0xFF, v.BackgroundColor3.B * 0xFF)),"#")[2])),
+        ["footer"] = {["text"] = "Project Vertigo | "..os.date()},
+        ["thumbnail"] = {["url"]=tostring(ImageLink)}
+        }}
+    }
+        print(tonumber("0x"..tostring(string.split((string.format("#%02X%02X%02X", v.BackgroundColor3.R * 0xFF,v.BackgroundColor3.G * 0xFF, v.BackgroundColor3.B * 0xFF)),"#")[2])))
+        request({Url = Settings.WebhookLink.."?wait=true", Body =  game:GetService("HttpService"):JSONEncode(Data), Method = "POST", Headers = {["content-type"] = "application/json"}})
+    end
+end)
+
+
 --Options
+Options.WebhookLink:OnChanged(function()
+    Settings.WebhookLink = Options.WebhookLink.Value
+end)
 Options.SelectedUpgrader:OnChanged(function()
     Settings.SelectedUpgrader = Options.SelectedUpgrader.Value
 end)
