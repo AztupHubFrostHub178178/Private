@@ -18,11 +18,27 @@ Library:OnUnload(function()
 end)
 
 --Locals
+local FetchItemModule = require(game:GetService("ReplicatedStorage").FetchItem)
+local TycoonBase = game.Players.LocalPlayer.PlayerTycoon.Value.Base
 local MyTycoon = game:GetService("Players").LocalPlayer.PlayerTycoon.Value
 local MoneyLibary = require(game:GetService("ReplicatedStorage").MoneyLib)
+local PlayersList = {}
 if syn then request = syn.request end
 
 --Functions
+function GetPlayers()
+    table.clear(PlayersList)
+    for i,v in pairs(game.Players:GetChildren()) do
+        table.insert(PlayersList,v.Name)
+    end
+end
+GetPlayers()
+game.Players.PlayerAdded:Connect(function()
+    GetPlayers()
+end)
+game.Players.PlayerRemoving:Connect(function()
+    GetPlayers()
+end)
 function GetDropped()
     local tbl = {}
     for i,v in pairs(game:GetService("Workspace").DroppedParts[MyTycoon.Name]:GetChildren()) do
@@ -30,9 +46,66 @@ function GetDropped()
     end
     return tbl
 end
+function ShopItems()
+    for i,v in pairs(getgc(true)) do
+        if type(v) == "table" and rawget(v,"Miscs") then
+            return v["All"]
+        end
+    end
+end
+function HasItem(Needed)
+    if game:GetService("ReplicatedStorage").HasItem:InvokeServer(Needed) > 0 then
+        return true
+    end
+    return false
+end
+function IsShopItem(Needed)
+    for i,v in pairs(ShopItems()) do
+        if tonumber(v.ItemId.Value) == tonumber(Needed) then
+            return true
+        end
+    end
+    return false
+end
 
-local Settings = {ItemTracker=false,WebhookLink="",LoopPulse=false,AutoPulse=false,LoopRemoteDrop=false,AutoLoadSetup=false,LoadAfter=5,ShouldReload=false,LayoutSelected=1,AutoRebirth=false,LoopUpgrader=false,SelectedUpgrader="nil",SelectedFurnace="nil"}
-local Tabs = {Main = Window:AddTab('Main'),['UI Settings'] = Window:AddTab('UI Settings'),}
+
+local Settings = {LayoutCopierSelected="1",LayoutPlayerSelected="",ItemTracker=false,WebhookLink="",LoopPulse=false,AutoPulse=false,LoopRemoteDrop=false,AutoLoadSetup=false,LoadAfter=5,ShouldReload=false,LayoutSelected=1,AutoRebirth=false,LoopUpgrader=false,SelectedUpgrader="nil",SelectedFurnace="nil"}
+local Tabs = {Main = Window:AddTab('Main'),Layouts=Window:AddTab('Layouts'),['UI Settings'] = Window:AddTab('UI Settings'),}
+
+local LayoutsTabbox = Tabs.Layouts:AddLeftTabbox()
+local LayoutsTab = LayoutsTabbox:AddTab('Ores')
+
+LayoutsTab:AddDropdown('LayoutPlayerSelected',{Values = PlayersList,Default = 1,Multi = false,Text = 'Layout',})
+LayoutsTab:AddDropdown('LayoutCopierSelected', {Values = {1,2,3},Default = 1,Multi = false,Text = 'Layout',})
+LayoutsTab:AddButton('Build Layout', function()
+    for i,v in pairs(game:GetService("HttpService"):JSONDecode(game:GetService("Players")[Settings.LayoutPlayerSelected].Layouts["Layout"..Settings.LayoutCopierSelected].Value)) do
+        task.spawn(function()
+            if HasItem(v["ItemId"]) == true then
+                local TopLeft = TycoonBase.CFrame * CFrame.new(Vector3.new(TycoonBase.Size.X/2, 0, TycoonBase.Size.Z/2))
+                local Position = TopLeft * Vector3.new(tonumber(v.Position[1]), tonumber(v.Position[2]), tonumber(v.Position[3]))
+                local Rotation = Vector3.new(tonumber(v.Position[4]),tonumber(v.Position[5]),tonumber(v.Position[6]))
+                local NewCf = CFrame.new(Position, Position + (Rotation * 5))
+                game:GetService("ReplicatedStorage").PlaceItem:InvokeServer(FetchItemModule.Get(nil,v["ItemId"]).Name,NewCf,{TycoonBase})
+                task.wait()
+            elseif HasItem(v["ItemId"]) == false and IsShopItem(v["ItemId"]) == true and game:GetService("Players").LocalPlayer.PlayerGui.GUI.Money.Value >= game:GetService("ReplicatedStorage").Items[FetchItemModule.Get(nil,v["ItemId"]).Name].Cost.Value then
+                game:GetService("ReplicatedStorage").BuyItem:InvokeServer(FetchItemModule.Get(nil,v["ItemId"]).Name,1)
+                task.wait()
+                local TopLeft = TycoonBase.CFrame * CFrame.new(Vector3.new(TycoonBase.Size.X/2, 0, TycoonBase.Size.Z/2))
+                local Position = TopLeft * Vector3.new(tonumber(v.Position[1]), tonumber(v.Position[2]), tonumber(v.Position[3]))
+                local Rotation = Vector3.new(tonumber(v.Position[4]),tonumber(v.Position[5]),tonumber(v.Position[6]))
+                local NewCf = CFrame.new(Position, Position + (Rotation * 5))
+                game:GetService("ReplicatedStorage").PlaceItem:InvokeServer(FetchItemModule.Get(nil,v["ItemId"]).Name,NewCf,{TycoonBase})
+                task.wait()
+            else
+                if IsShopItem(v["ItemId"]) == true then
+                    print("Cant Afford Item, "..FetchItemModule.Get(nil,v["ItemId"]).Name)
+                else
+                    print("Cant Find, "..FetchItemModule.Get(nil,v["ItemId"]).Name)
+                end
+            end
+        end)
+    end
+end)
 
 local OresTabbox = Tabs.Main:AddLeftTabbox()
 local OresTab = OresTabbox:AddTab('Ores')
@@ -47,7 +120,7 @@ OresTab:AddInput('SelectedUpgrader', {Default = 'Upgrader',Numeric = false,Finis
 OresTab:AddToggle('LoopUpgrader', {Text = 'Loop Upgrader',Default = false})
 OresTab:AddDivider()
 OresTab:AddInput('SelectedFurnace', {Default = 'Furnace',Numeric = false,Finished = false,Text = 'Furnace',Placeholder = 'Furnace',})
-OresTab:AddButton('SellOres', function()
+OresTab:AddButton('Sell Ores', function()
     for i,v in pairs(GetDropped()) do
         if MyTycoon:FindFirstChild(Settings.SelectedFurnace) then
             firetouchinterest(v,MyTycoon[Settings.SelectedFurnace].Model.Lava,0)
@@ -208,6 +281,12 @@ Options.LayoutSelected:OnChanged(function()
 end)
 Options.LoadAfter:OnChanged(function()
     Settings.LoadAfter = Options.LoadAfter.Value
+end)
+Options.LayoutCopierSelected:OnChanged(function()
+    Settings.LayoutCopierSelected = Options.LayoutCopierSelected.Value
+end)
+Options.LayoutPlayerSelected:OnChanged(function()
+    Settings.LayoutPlayerSelected = Options.LayoutPlayerSelected.Value
 end)
 
 local MenuGroup = Tabs['UI Settings']:AddLeftGroupbox('Menu')
