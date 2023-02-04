@@ -103,7 +103,7 @@ LayoutsTab:AddButton('Build Layout', function()
                     print("Cant Find, "..FetchItemModule.Get(nil,v["ItemId"]).Name)
                 end
             end
-        end
+        end)
     end
 end)
 
