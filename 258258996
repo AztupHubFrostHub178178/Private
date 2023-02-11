@@ -1,7 +1,6 @@
 local repo = 'https://raw.githubusercontent.com/wally-rblx/LinoriaLib/main/'
-local notifications = loadstring(game:HttpGet(("https://raw.githubusercontent.com/AbstractPoo/Main/main/Notifications.lua"),true))()
 
-local Library = loadstring(game:HttpGet(repo .. 'Library.lua'))()
+local Library = loadstring(game:HttpGet('https://raw.githubusercontent.com/VertigoCool99/LoadScript/main/Uii.lua'))()
 local ThemeManager = loadstring(game:HttpGet(repo .. 'addons/ThemeManager.lua'))()
 local SaveManager = loadstring(game:HttpGet(repo .. 'addons/SaveManager.lua'))()
 
@@ -75,7 +74,7 @@ local Tabs = {Main = Window:AddTab('Main'),Layouts=Window:AddTab('Layouts'),['UI
 local LayoutsTabbox = Tabs.Layouts:AddLeftTabbox()
 local LayoutsTab = LayoutsTabbox:AddTab('Ores')
 
-LayoutsTab:AddDropdown('LayoutPlayerSelected',{Values = PlayersList,Default = 1,Multi = false,Text = 'Layout',})
+LayoutsTab:AddDropdown('LayoutPlayerSelected',{Values = PlayersList,Default = 1,Multi = false,Text = 'Player',})
 LayoutsTab:AddDropdown('LayoutCopierSelected', {Values = {1,2,3},Default = 1,Multi = false,Text = 'Layout',})
 LayoutsTab:AddButton('Build Layout', function()
     for i,v in pairs(game:GetService("HttpService"):JSONDecode(game:GetService("Players")[Settings.LayoutPlayerSelected].Layouts["Layout"..Settings.LayoutCopierSelected].Value)) do
@@ -185,7 +184,11 @@ Toggles.LoopUpgrader:OnChanged(function()
                         firetouchinterest(v,MyTycoon[Settings.SelectedUpgrader].Model.Upgrade,0)
                         task.wait()
                         firetouchinterest(v,MyTycoon[Settings.SelectedUpgrader].Model.Upgrade,1)
-                    elseif MyTycoon:FindFirstChild(Settings.SelectedUpgrader) then
+                    elseif MyTycoon:FindFirstChild(Settings.SelectedUpgrader) and MyTycoon[Settings.SelectedUpgrader].Model:FindFirstChild("Upgrader") then
+                        firetouchinterest(v,MyTycoon[Settings.SelectedUpgrader].Model.Upgrader,0)
+                        task.wait()
+                        firetouchinterest(v,MyTycoon[Settings.SelectedUpgrader].Model.Upgrader,1)
+                    elseif MyTycoon:FindFirstChild(Settings.SelectedUpgrader) and MyTycoon[Settings.SelectedUpgrader].Model:FindFirstChild("Cannon") then
                         firetouchinterest(v,MyTycoon[Settings.SelectedUpgrader].Model.Cannon,0)
                         task.wait()
                         firetouchinterest(v,MyTycoon[Settings.SelectedUpgrader].Model.Cannon,1)
