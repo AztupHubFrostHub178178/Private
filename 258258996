@@ -25,6 +25,19 @@ local PlayersList = {}
 if syn then request = syn.request end
 
 --Functions
+function GetUpgraders()
+    tbl = {}
+    for i,v in pairs(MyTycoon:GetChildren()) do
+        if v:FindFirstChild("Model") and v.Model:FindFirstChild("Upgrade") then
+            table.insert(tbl,v)
+        elseif v:FindFirstChild("Model") and v.Model:FindFirstChild("Upgrader") then
+            table.insert(tbl,v)
+        elseif v:FindFirstChild("Model") and v.Model:FindFirstChild("Cannon") then
+            table.insert(tbl,v)
+        end
+    end
+    return tbl
+end
 function GetPlayers()
     table.clear(PlayersList)
     for i,v in pairs(game.Players:GetChildren()) do
@@ -68,13 +81,13 @@ function IsShopItem(Needed)
 end
 
 
-local Settings = {LayoutCopierSelected="1",LayoutPlayerSelected="",ItemTracker=false,WebhookLink="",LoopPulse=false,AutoPulse=false,LoopRemoteDrop=false,AutoLoadSetup=false,LoadAfter=5,ShouldReload=false,LayoutSelected=1,AutoRebirth=false,LoopUpgrader=false,SelectedUpgrader="nil",SelectedFurnace="nil"}
+local Settings = {AutoLoopUpgrader=false,LayoutCopierSelected="1",LayoutPlayerSelected="",ItemTracker=false,WebhookLink="",LoopPulse=false,AutoPulse=false,LoopRemoteDrop=false,AutoLoadSetup=false,LoadAfter=5,ShouldReload=false,LayoutSelected=1,AutoRebirth=false,LoopUpgrader=false,SelectedUpgrader="nil",SelectedFurnace="nil"}
 local Tabs = {Main = Window:AddTab('Main'),Layouts=Window:AddTab('Layouts'),['UI Settings'] = Window:AddTab('UI Settings'),}
 
 local LayoutsTabbox = Tabs.Layouts:AddLeftTabbox()
 local LayoutsTab = LayoutsTabbox:AddTab('Ores')
 
-LayoutsTab:AddDropdown('LayoutPlayerSelected',{Values = PlayersList,Default = 1,Multi = false,Text = 'Player',})
+LayoutsTab:AddDropdown('LayoutPlayerSelected',{Values = PlayersList,Default = 2,Multi = false,Text = 'Player',})
 LayoutsTab:AddDropdown('LayoutCopierSelected', {Values = {1,2,3},Default = 1,Multi = false,Text = 'Layout',})
 LayoutsTab:AddButton('Build Layout', function()
     for i,v in pairs(game:GetService("HttpService"):JSONDecode(game:GetService("Players")[Settings.LayoutPlayerSelected].Layouts["Layout"..Settings.LayoutCopierSelected].Value)) do
@@ -117,6 +130,7 @@ local WebhookTab = WebhookTabbox:AddTab('Webhook')
 
 OresTab:AddInput('SelectedUpgrader', {Default = 'Upgrader',Numeric = false,Finished = false,Text = 'Upgrader',Placeholder = 'Upgrader Name',})
 OresTab:AddToggle('LoopUpgrader', {Text = 'Loop Upgrader',Default = false})
+OresTab:AddToggle('AutoLoopUpgraders', {Text = 'Loop All Upgraders',Default = false})
 OresTab:AddDivider()
 OresTab:AddInput('SelectedFurnace', {Default = 'Furnace',Numeric = false,Finished = false,Text = 'Furnace',Placeholder = 'Furnace',})
 OresTab:AddButton('Sell Ores', function()
@@ -170,6 +184,32 @@ Toggles.LoopRemoteDrop:OnChanged(function()
         while Settings.LoopRemoteDrop == true do task.wait()
             if Settings.LoopRemoteDrop == true then
                 game:GetService("ReplicatedStorage").RemoteDrop:FireServer()
+            end
+        end
+    end)
+end)
+Toggles.AutoLoopUpgraders:OnChanged(function()
+    Settings.AutoLoopUpgraders = Toggles.AutoLoopUpgraders.Value
+    task.spawn(function()
+        while Settings.AutoLoopUpgraders do task.wait()
+            if Settings.AutoLoopUpgraders then
+                for i,v2 in pairs(GetDropped()) do
+                    for i2,v in pairs(GetUpgraders()) do
+                        if v.Model:FindFirstChild("Upgrade") then
+                            firetouchinterest(v2,v.Model.Upgrade,0)
+                            task.wait()
+                            firetouchinterest(v2,v.Model.Upgrade,1)
+                        elseif v.Model:FindFirstChild("Upgrader") then
+                            firetouchinterest(v2,v.Model.Upgrader,0)
+                            task.wait()
+                            firetouchinterest(v2,v.Model.Upgrader,1)
+                        elseif v.Model:FindFirstChild("Cannon") then
+                            firetouchinterest(v2,v.Model.Cannon,0)
+                            task.wait()
+                            firetouchinterest(v2,v.Model.Cannon,1)
+                        end
+                    end
+                end
             end
         end
     end)
