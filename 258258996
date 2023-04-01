@@ -1,7 +1,7 @@
 local repo = 'https://raw.githubusercontent.com/wally-rblx/LinoriaLib/main/'
 
-local Library = loadstring(game:HttpGet('https://raw.githubusercontent.com/VertigoCool99/LoadScript/main/Uii.lua'))()
-local ThemeManager = loadstring(game:HttpGet(repo .. 'addons/ThemeManager.lua'))()
+local Library = loadstring(game:HttpGet(repo .. 'Library.lua'))()
+local ThemeManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/VertigoCool99/LoadScript/main/ThemeManager.lua"))()
 local SaveManager = loadstring(game:HttpGet(repo .. 'addons/SaveManager.lua'))()
 
 local Window = Library:CreateWindow({
@@ -277,7 +277,7 @@ Toggles.ShouldReload:OnChanged(function()
 end)
 
 game:GetService("Players").LocalPlayer.PlayerGui.GUI.Notifications.ChildAdded:Connect(function(v)
-    if v.Name == "ItemTemplate" and v:FindFirstChild("Title") and v:FindFirstChild("Tier") and v:FindFirstChild("Icon") and Settings.ItemTracker == true then
+    if v.Name == "ItemTemplate" or "ItemTemplateMini" and v:FindFirstChild("Title") and v:FindFirstChild("Tier") and v:FindFirstChild("Icon") and Settings.ItemTracker == true then
         local ImageId = v.Icon.Image
         if string.find(ImageId,"rbxasset") then
            ImageId = string.split(tostring(v.Icon.Image),"//")[2] 
@@ -303,7 +303,7 @@ game:GetService("Players").LocalPlayer.PlayerGui.GUI.Notifications.ChildAdded:Co
         ["thumbnail"] = {["url"]=tostring(ImageLink)}
         }}
     }
-        print(tonumber("0x"..tostring(string.split((string.format("#%02X%02X%02X", v.BackgroundColor3.R * 0xFF,v.BackgroundColor3.G * 0xFF, v.BackgroundColor3.B * 0xFF)),"#")[2])))
+    
         request({Url = Settings.WebhookLink.."?wait=true", Body =  game:GetService("HttpService"):JSONEncode(Data), Method = "POST", Headers = {["content-type"] = "application/json"}})
     end
 end)
