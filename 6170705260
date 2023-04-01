@@ -1,7 +1,7 @@
 local repo = 'https://raw.githubusercontent.com/wally-rblx/LinoriaLib/main/'
 
 local Library = loadstring(game:HttpGet('https://raw.githubusercontent.com/VertigoCool99/LoadScript/main/Uii.lua'))()
-local ThemeManager = loadstring(game:HttpGet(repo .. 'addons/ThemeManager.lua'))()
+local ThemeManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/VertigoCool99/LoadScript/main/ThemeManager.lua"))()
 local SaveManager = loadstring(game:HttpGet(repo .. 'addons/SaveManager.lua'))()
 
 local Window = Library:CreateWindow({
@@ -171,8 +171,8 @@ end)
 TeleportsBox:AddButton("Goto Frosto [NPC]", function()
     game.Players.LocalPlayer.Character:PivotTo(game:GetService("Workspace").Quests["Frosto"]["Glow_ring"]:GetPivot()+Vector3.new(0,3,0))
 end)
-TeleportsBox:AddButton("Goto Gingo [NPC]", function()
-    game.Players.LocalPlayer.Character:PivotTo(game:GetService("Workspace").Quests["Gingo"]["Glow_ring"]:GetPivot()+Vector3.new(0,3,0))
+TeleportsBox:AddButton("Goto Rojar [NPC]", function()
+    game.Players.LocalPlayer.Character:PivotTo(game:GetService("Workspace").Quests.Rojar["Glow_ring"]:GetPivot()+Vector3.new(0,3,0))
 end)
 
 WebhookBox:AddInput('WebhookLink', {Default = "Webhook Link",Numeric = false,Finished = false,Text = 'Webhook Link',Placeholder = 'Webhook Link',})
@@ -235,7 +235,7 @@ Toggles.AutoIngredents:OnChanged(function()
                 for i,v in pairs(game:GetService("Workspace").Areas[Settings.Area].Items:GetChildren()) do
                     task.spawn(function()
                         if v:FindFirstChild("Collected") and v.Collected.Value == false then
-                            game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = v.Hitbox.CFrame
+                            game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = v.Hitbox.CFrame - Vector3.new(0,8,0)
                             game.Players.LocalPlayer.Character.HumanoidRootPart.Velocity = Vector3.new(0,0,0)
                         end
                     end)
